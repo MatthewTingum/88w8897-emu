@@ -1,0 +1,398 @@
+[Port3]  :  USB Composite Device
+
+
+Is Port User Connectable:         no
+Is Port Debug Capable:            no
+Companion Port Number:            0
+Companion Hub Symbolic Link Name: 
+Protocols Supported:
+ USB 1.1:                         yes
+ USB 2.0:                         yes
+ USB 3.0:                         no
+
+Device Power State:               PowerDeviceD2
+
+       ---===>Device Information<===---
+English product name: "Bluetooth and Wireless LAN Composite Device"
+
+ConnectionStatus:                  
+Current Config Value:              0x01  -> Device Bus Speed: High (is not SuperSpeed or higher capable)
+Device Address:                    0x04
+Open Pipes:                          10
+
+          ===>Device Descriptor<===
+bLength:                           0x12
+bDescriptorType:                   0x01
+bcdUSB:                          0x0200
+bDeviceClass:                      0xEF  -> This is a Multi-interface Function Code Device
+bDeviceSubClass:                   0x02  -> This is the Common Class Sub Class
+bDeviceProtocol:                   0x01  -> This is the Interface Association Descriptor protocol
+bMaxPacketSize0:                   0x40 = (64) Bytes
+idVendor:                        0x1286 = MARVELL SEMICONDUCTOR, INC.
+idProduct:                       0x2044
+bcdDevice:                       0x3201
+iManufacturer:                     0x01
+     English (United States)  "Marvell"
+iProduct:                          0x02
+     English (United States)  "Bluetooth and Wireless LAN Composite Device"
+iSerialNumber:                     0x03
+     English (United States)  "6045BDDB2C7C"
+bNumConfigurations:                0x01
+
+          ---===>Open Pipes<===---
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x83  -> Direction: IN - EndpointID: 3
+bmAttributes:                      0x03  -> Interrupt Transfer Type
+wMaxPacketSize:                  0x0040 = 1 transactions per microframe, 0x40 max bytes
+bInterval:                         0x01
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x84  -> Direction: IN - EndpointID: 4
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x04  -> Direction: OUT - EndpointID: 4
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0xFF
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0000*!*ERROR:  Invalid maximum packet size, should be between 1 and 1024
+ = 1 transactions per microframe, 0x00 max bytes
+bInterval:                         0x04
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0000*!*ERROR:  Invalid maximum packet size, should be between 1 and 1024
+ = 1 transactions per microframe, 0x00 max bytes
+bInterval:                         0x04
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x01  -> Direction: OUT - EndpointID: 1
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x81  -> Direction: IN - EndpointID: 1
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x02  -> Direction: OUT - EndpointID: 2
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x82  -> Direction: IN - EndpointID: 2
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x06  -> Direction: OUT - EndpointID: 6
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+       ---===>Full Configuration Descriptor<===---
+
+          ===>Configuration Descriptor<===
+bLength:                           0x09
+bDescriptorType:                   0x02
+wTotalLength:                    0x00E5  -> Validated
+bNumInterfaces:                    0x03
+bConfigurationValue:               0x01
+iConfiguration:                    0x00
+bmAttributes:                      0xE0  -> Self Powered
+  -> Remote Wakeup
+MaxPower:                          0xFA = 500 mA
+
+          ===>IAD Descriptor<===
+bLength:                           0x08
+bDescriptorType:                   0x0B
+bFirstInterface:                   0x00
+bInterfaceCount:                   0x02
+bFunctionClass:                    0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+bFunctionSubClass:                 0x01
+bFunctionProtocol:                 0x01
+iFunction:                         0x00
+
+          ===>Interface Descriptor<===
+bLength:                           0x09
+bDescriptorType:                   0x04
+bInterfaceNumber:                  0x00
+bAlternateSetting:                 0x00
+bNumEndpoints:                     0x03
+bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+bInterfaceSubClass:                0x01
+bInterfaceProtocol:                0x01
+iInterface:                        0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x83  -> Direction: IN - EndpointID: 3
+bmAttributes:                      0x03  -> Interrupt Transfer Type
+wMaxPacketSize:                  0x0040 = 1 transactions per microframe, 0x40 max bytes
+bInterval:                         0x01
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x84  -> Direction: IN - EndpointID: 4
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x04  -> Direction: OUT - EndpointID: 4
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0xFF
+
+          ===>Interface Descriptor<===
+bLength:                           0x09
+bDescriptorType:                   0x04
+bInterfaceNumber:                  0x01
+bAlternateSetting:                 0x00
+bNumEndpoints:                     0x02
+bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+bInterfaceSubClass:                0x01
+bInterfaceProtocol:                0x01
+iInterface:                        0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0000*!*ERROR:  Invalid maximum packet size, should be between 1 and 1024
+ = 1 transactions per microframe, 0x00 max bytes
+bInterval:                         0x04
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0000*!*ERROR:  Invalid maximum packet size, should be between 1 and 1024
+ = 1 transactions per microframe, 0x00 max bytes
+bInterval:                         0x04
+
+          ===>Interface Descriptor<===
+bLength:                           0x09
+bDescriptorType:                   0x04
+bInterfaceNumber:                  0x01
+bAlternateSetting:                 0x01
+bNumEndpoints:                     0x02
+bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+bInterfaceSubClass:                0x01
+bInterfaceProtocol:                0x01
+iInterface:                        0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0009 = 1 transactions per microframe, 0x09 max bytes
+bInterval:                         0x04
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0009 = 1 transactions per microframe, 0x09 max bytes
+bInterval:                         0x04
+
+          ===>Interface Descriptor<===
+bLength:                           0x09
+bDescriptorType:                   0x04
+bInterfaceNumber:                  0x01
+bAlternateSetting:                 0x02
+bNumEndpoints:                     0x02
+bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+bInterfaceSubClass:                0x01
+bInterfaceProtocol:                0x01
+iInterface:                        0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0011 = 1 transactions per microframe, 0x11 max bytes
+bInterval:                         0x04
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0011 = 1 transactions per microframe, 0x11 max bytes
+bInterval:                         0x04
+
+          ===>Interface Descriptor<===
+bLength:                           0x09
+bDescriptorType:                   0x04
+bInterfaceNumber:                  0x01
+bAlternateSetting:                 0x03
+bNumEndpoints:                     0x02
+bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+bInterfaceSubClass:                0x01
+bInterfaceProtocol:                0x01
+iInterface:                        0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0019 = 1 transactions per microframe, 0x19 max bytes
+bInterval:                         0x04
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0019 = 1 transactions per microframe, 0x19 max bytes
+bInterval:                         0x04
+
+          ===>Interface Descriptor<===
+bLength:                           0x09
+bDescriptorType:                   0x04
+bInterfaceNumber:                  0x01
+bAlternateSetting:                 0x04
+bNumEndpoints:                     0x02
+bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+bInterfaceSubClass:                0x01
+bInterfaceProtocol:                0x01
+iInterface:                        0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0021 = 1 transactions per microframe, 0x21 max bytes
+bInterval:                         0x04
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0021 = 1 transactions per microframe, 0x21 max bytes
+bInterval:                         0x04
+
+          ===>Interface Descriptor<===
+bLength:                           0x09
+bDescriptorType:                   0x04
+bInterfaceNumber:                  0x01
+bAlternateSetting:                 0x05
+bNumEndpoints:                     0x02
+bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+bInterfaceSubClass:                0x01
+bInterfaceProtocol:                0x01
+iInterface:                        0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0031 = 1 transactions per microframe, 0x31 max bytes
+bInterval:                         0x04
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+wMaxPacketSize:                  0x0031 = 1 transactions per microframe, 0x31 max bytes
+bInterval:                         0x04
+
+          ===>Interface Descriptor<===
+bLength:                           0x09
+bDescriptorType:                   0x04
+bInterfaceNumber:                  0x02
+bAlternateSetting:                 0x00
+bNumEndpoints:                     0x05
+bInterfaceClass:                   0xFF  -> Interface Class Unknown to USBView
+bInterfaceSubClass:                0xFF
+bInterfaceProtocol:                0xFF
+iInterface:                        0x05
+     English (United States)  "Wireless LAN Interface"
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x01  -> Direction: OUT - EndpointID: 1
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x81  -> Direction: IN - EndpointID: 1
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x02  -> Direction: OUT - EndpointID: 2
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x82  -> Direction: IN - EndpointID: 2
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
+
+          ===>Endpoint Descriptor<===
+bLength:                           0x07
+bDescriptorType:                   0x05
+bEndpointAddress:                  0x06  -> Direction: OUT - EndpointID: 6
+bmAttributes:                      0x02  -> Bulk Transfer Type
+wMaxPacketSize:                  0x0200 = 0x200 max bytes
+bInterval:                         0x00
