@@ -12,3 +12,8 @@ We'll be pulling some clues from here: https://github.com/torvalds/linux/tree/aa
 
 The initial commits of this project contain a shameless fork (or rather copy) of work pertaining to USB emulation done by xxandy
 https://github.com/xxandy/USB_UDE_Sample
+
+
+Join us on Discord
+
+https://discord.gg/xJMPZC
