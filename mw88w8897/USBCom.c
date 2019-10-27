@@ -67,7 +67,8 @@ NTSTATUS. Could fail on allocation failure or the same context type already exis
 
 --*/
 {
-	DbgPrint("[MWIFIEX] Io_AllocateContext\n");
+	//DbgPrint("[MWIFIEX] Io_AllocateContext\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Io_AllocateContext\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] Io_AllocateContext");
     NTSTATUS status;
     WDF_OBJECT_ATTRIBUTES attributes;
@@ -101,7 +102,8 @@ IoEvtControlUrb(
     _In_ ULONG IoControlCode
 )
 {
-	DbgPrint("[MWIFIEX] IoEvtControlUrb\n");
+	//DbgPrint("[MWIFIEX] IoEvtControlUrb\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtControlUrb");
     WDF_USB_CONTROL_SETUP_PACKET setupPacket;
     NTSTATUS status;
@@ -135,7 +137,8 @@ IoEvtControlUrb(
 		// This has something! -- LOGINFO IT!!!
 		//hexdump(transferBuffer, transferBufferLength);
 		LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtControlUrb - transferBufferLength: %lu\n", transferBufferLength);
-		DbgPrint("[MWIFIEX] IoEvtControlUrb - transferBufferLength: %lu\n", transferBufferLength);
+		//DbgPrint("[MWIFIEX] IoEvtControlUrb - transferBufferLength: %lu\n", transferBufferLength);
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - transferBufferLength: %lu\n", transferBufferLength);
 
 		HANDLE hFile;
 		OBJECT_ATTRIBUTES objAttribs = { 0 };
@@ -201,7 +204,8 @@ IoEvtBulkOutUrb(
     _In_ ULONG IoControlCode
 )
 {
-	DbgPrint("[MWIFIEX] IoEvtBulkOutUrb\n");
+	//DbgPrint("[MWIFIEX] IoEvtBulkOutUrb\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkOutUrb");
     //WDFREQUEST matchingRead;
     WDFDEVICE backchannel;
@@ -293,7 +297,8 @@ IoEvtBulkInUrb(
     _In_ ULONG IoControlCode
 )
 {
-	DbgPrint("[MWIFIEX] IoEvtBulkInUrb\n");
+	//DbgPrint("[MWIFIEX] IoEvtBulkInUrb\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkInUrb");
     NTSTATUS status = STATUS_SUCCESS;
     WDFDEVICE backchannel;
@@ -322,13 +327,15 @@ IoEvtBulkInUrb(
     status = UdecxUrbRetrieveBuffer(Request, &transferBuffer, &transferBufferLength);
     if (!NT_SUCCESS(status))
     {
-		DbgPrint("[MWIFIEX] Bulk In - unable to retrieve buffer\n");
+		//DbgPrint("[MWIFIEX] Bulk In - unable to retrieve buffer\n");
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Bulk In - unable to retrieve buffer\n");
         LogError(TRACE_DEVICE, "WdfRequest BIN %p unable to retrieve buffer %!STATUS!",
             Request, status);
         goto exit;
     }
 
-	DbgPrint("[MWIFIEX] Bulk In - transferBufferLength: %lu\n", transferBufferLength);
+	//DbgPrint("[MWIFIEX] Bulk In - transferBufferLength: %lu\n", transferBufferLength);
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Bulk In - transferBufferLength: %lu\n", transferBufferLength);
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkInUrb transferBufferLength: %lu", transferBufferLength);
 	//hexdump(transferBuffer, transferBufferLength);
 
@@ -368,7 +375,8 @@ IoEvtCancelInterruptInUrb(
     IN WDFREQUEST  Request
 )
 {
-	DbgPrint("[MWIFIEX] IoEvtCancelInterruptInUrb\n");
+	//DbgPrint("[MWIFIEX] IoEvtCancelInterruptInUrb\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtCancelInterruptInUrb\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtCancelInterruptInUrb");
     UNREFERENCED_PARAMETER(Queue);
     LogInfo(TRACE_DEVICE, "Canceling request %p", Request);
@@ -381,7 +389,8 @@ IoCompletePendingRequest(
     _In_ WDFREQUEST request,
     _In_ DEVICE_INTR_FLAGS LatestStatus)
 {
-	DbgPrint("[MWIFIEX] IoEvtCancelInterruptInUrb\n");
+	//DbgPrint("[MWIFIEX] IoEvtCancelInterruptInUrb\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtCancelInterruptInUrb\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoCompletePendingRequest");
     NTSTATUS status = STATUS_SUCCESS;
     PUCHAR transferBuffer;
@@ -426,7 +435,8 @@ Io_RaiseInterrupt(
     _In_ UDECXUSBDEVICE    Device,
     _In_ DEVICE_INTR_FLAGS LatestStatus )
 {
-	DbgPrint("[MWIFIEX] Io_RaiseInterrupt\n");
+	//DbgPrint("[MWIFIEX] Io_RaiseInterrupt\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Io_RaiseInterrupt\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] Io_RaiseInterrupt");
     PIO_CONTEXT pIoContext;
     WDFREQUEST request;
@@ -468,9 +478,11 @@ IoEvtInterruptInUrb(
     _In_ ULONG IoControlCode
 )
 {
-	DbgPrint("[MWIFIEX] IoEvtInterruptInUrb\n");
+	//DbgPrint("[MWIFIEX] IoEvtInterruptInUrb\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtInterruptInUrb");
-	DbgPrint("[MWIFIEX] IoEvt I/O control code 0x%x\n", IoControlCode);
+	//DbgPrint("[MWIFIEX] IoEvt I/O control code 0x%x\n", IoControlCode);
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvt I/O control code 0x%x\n", IoControlCode);
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvt I/O control code 0x%x\n", IoControlCode);
     PIO_CONTEXT pIoContext;
     UDECXUSBDEVICE tgtDevice;
@@ -493,7 +505,8 @@ IoEvtInterruptInUrb(
 
 
     if (IoControlCode != IOCTL_INTERNAL_USB_SUBMIT_URB)   {
-		DbgPrint("[MWIFIEX] IoEvt Invalid Interrupt/IN out IOCTL code %x\n", IoControlCode);
+		//DbgPrint("[MWIFIEX] IoEvt Invalid Interrupt/IN out IOCTL code %x\n", IoControlCode);
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvt Invalid Interrupt/IN out IOCTL code %x\n", IoControlCode);
         LogError(TRACE_DEVICE, "Invalid Interrupt/IN out IOCTL code %x", IoControlCode);
         status = STATUS_ACCESS_DENIED;
         goto exit;
@@ -504,7 +517,8 @@ IoEvtInterruptInUrb(
     if( pIoContext->IntrState.numUnreadUpdates > 0)
     {
         bHasData = TRUE;
-		DbgPrint("[MWIFIEX] IoEvt bHasData\n");
+		//DbgPrint("[MWIFIEX] IoEvt bHasData\n");
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvt bHasData\n");
 		LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvt bHasData");
         LatestStatus = pIoContext->IntrState.latestStatus;
     }
@@ -539,7 +553,8 @@ Io_CreateDeferredIntrQueue(
     _In_ WDFDEVICE   ControllerDevice,
     _In_ PIO_CONTEXT pIoContext )
 {
-	DbgPrint("[MWIFIEX] Io_CreateDeferredIntrQueue\n");
+	//DbgPrint("[MWIFIEX] Io_CreateDeferredIntrQueue\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Io_CreateDeferredIntrQueue\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] Io_CreateDeferredIntrQueue");
     NTSTATUS status;
     WDF_IO_QUEUE_CONFIG queueConfig;
@@ -594,7 +609,8 @@ Io_DeviceSlept(
     _In_ UDECXUSBDEVICE  Device
 )
 {
-	DbgPrint("[MWIFIEX] Io_DeviceSlept\n");
+	//DbgPrint("[MWIFIEX] Io_DeviceSlept\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Io_DeviceSlept\n");
     PIO_CONTEXT pIoContext;
     pIoContext = WdfDeviceGetIoContext(Device);
 
@@ -611,7 +627,8 @@ Io_DeviceWokeUp(
     _In_ UDECXUSBDEVICE  Device
 )
 {
-	DbgPrint("[MWIFIEX] Io_DeviceWokeUp\n");
+	//DbgPrint("[MWIFIEX] Io_DeviceWokeUp\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Io_DeviceWokeUp\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] Io_DeviceWokeUp");
     PIO_CONTEXT pIoContext;
     pIoContext = WdfDeviceGetIoContext(Device);
@@ -631,7 +648,8 @@ Io_RetrieveEpQueue(
     _Out_ WDFQUEUE     * Queue
 )
 {
-	DbgPrint("[MWIFIEX] Io_RetrieveEpQueue\n");
+	//DbgPrint("[MWIFIEX] Io_RetrieveEpQueue\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Io_RetrieveEpQueue\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] Io_RetrieveEpQueue");
     NTSTATUS status;
     PIO_CONTEXT pIoContext;
@@ -759,7 +777,8 @@ Io_StopDeferredProcessing(
     _Out_ PIO_CONTEXT   pIoContextCopy
 )
 {
-	DbgPrint("[MWIFIEX] Io_StopDeferredProcessing\n");
+	//DbgPrint("[MWIFIEX] Io_StopDeferredProcessing\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Io_StopDeferredProcessing\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] Io_StopDeferredProcessing");
     PIO_CONTEXT pIoContext = WdfDeviceGetIoContext(Device);
 
@@ -778,7 +797,8 @@ Io_FreeEndpointQueues(
     _In_ PIO_CONTEXT   pIoContext
 )
 {
-	DbgPrint("[MWIFIEX] Io_FreeEndpointQueues\n");
+	//DbgPrint("[MWIFIEX] Io_FreeEndpointQueues\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Io_FreeEndpointQueues\n");
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] Io_FreeEndpointQueues");
 
 	if (pIoContext->IntrDeferredQueue != NULL) {

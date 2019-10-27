@@ -121,7 +121,8 @@ Return Value:
 
 --*/
 {
-	DbgPrint("[MWIFIEX] MWIFIEXEvtDeviceAdd\n");
+	//DbgPrint("[MWIFIEX] MWIFIEXEvtDeviceAdd\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] MWIFIEXEvtDeviceAdd\n");
     NTSTATUS status;
 
     UNREFERENCED_PARAMETER(Driver);
@@ -156,7 +157,8 @@ Return Value:
 
 --*/
 {
-	DbgPrint("[MWIFIEX] MWIFIEXEvtDriverContextCleanup\n");
+	//DbgPrint("[MWIFIEX] MWIFIEXEvtDriverContextCleanup\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] MWIFIEXEvtDriverContextCleanup\n");
     UNREFERENCED_PARAMETER(DriverObject);
 
     PAGED_CODE();

@@ -65,6 +65,7 @@ WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(USB_CONTEXT, GetUsbDeviceContext);
 // Emulating an 8997 (PID_1 is configuration)
 #define MWIFIEX_DEVICE_VENDOR_ID  0x86, 0x12 // little endian
 #define MWIFIEX_DEVICE_PROD_ID    0x43, 0x20 // little endian
+#define MWIFIEX_DEVICE_PROD_ID2    0x44, 0x20 // little endian
 
 extern const UCHAR g_UsbDeviceDescriptor[];
 extern const UCHAR g_UsbConfigDescriptorSet[];
