@@ -241,45 +241,9 @@ IoEvtBulkOutUrb1(
     }
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkOutUrb - transferBufferLength: %lu\n", transferBufferLength);
 
-    // try to get us information about a request that may be waiting for this info
-	/* BEGONE
-    status = WRQueuePushWrite(
-        &(pBackChannelContext->missionRequest),
-        transferBuffer,
-        transferBufferLength,
-        &matchingRead);
+	hexdump(transferBuffer, transferBufferLength);
 
-    if (matchingRead != NULL)
-    {
-        PVOID rbuffer;
-        SIZE_T rlen;
-
-        // this is a back-channel read, not a USB read!
-        status = WdfRequestRetrieveOutputBuffer(matchingRead, 1, &rbuffer, &rlen);
-
-        if (!NT_SUCCESS(status))  {
-
-            LogError(TRACE_DEVICE, "WdfRequest %p cannot retrieve mission completion buffer %!STATUS!",
-                matchingRead, status);
-
-        } else  {
-            completeBytes = MINLEN(rlen, transferBufferLength);
-            memcpy(rbuffer, transferBuffer, completeBytes);
-        }
-
-        WdfRequestCompleteWithInformation(matchingRead, status, completeBytes);
-
-        LogInfo(TRACE_DEVICE, "Mission request %p completed with matching read %p", Request, matchingRead);
-    } else {
-        LogInfo(TRACE_DEVICE, "Mission request %p enqueued", Request);
-    }
-
-	*/
-
-	// Mark the last Bulk IN as having a 'valid' CRC (We don't care)
-	//transferBuffer[0] = 0x00;
 	memset(transferBuffer, 0x00, transferBufferLength);
-	//WdfRequestCompleteWithInformation(Request, STATUS_SUCCESS, transferBufferLength);
 
 	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Bulk Out - transferBufferLength: %lu\n", transferBufferLength);
 
@@ -486,7 +450,7 @@ IoEvtBulkInUrb81(
 	UNREFERENCED_PARAMETER(OutputBufferLength);
 	UNREFERENCED_PARAMETER(InputBufferLength);
 
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb84\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81\n");
 
 	pEpQContext = GetEndpointQueueContext(Queue);
 	backchannel = pEpQContext->backChannelDevice;
@@ -535,7 +499,7 @@ IoEvtBulkInUrb82(
 	UNREFERENCED_PARAMETER(OutputBufferLength);
 	UNREFERENCED_PARAMETER(InputBufferLength);
 
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb84\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81\n");
 
 	pEpQContext = GetEndpointQueueContext(Queue);
 	backchannel = pEpQContext->backChannelDevice;
@@ -606,33 +570,9 @@ IoEvtBulkInUrb84(
 		goto exit;
 	}
 
-	// try to get us information about a request that may be waiting for this info
-	/*
-	status = WRQueuePullRead(
-		&(pBackChannelContext->missionCompletion),
-		Request,
-		transferBuffer,
-		transferBufferLength,
-		&bReady,
-		&completeBytes);
+	hexdump(transferBuffer, transferBufferLength);
 
-	if (bReady)
-	{
-		UdecxUrbSetBytesCompleted(Request, (ULONG)completeBytes);
-		UdecxUrbCompleteWithNtStatus(Request, status);
-		LogInfo(TRACE_DEVICE, "Mission response %p completed with pre-existing data", Request);
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb84 - bReady\n");
-	}
-	else {
-		LogInfo(TRACE_DEVICE, "Mission response %p pended", Request);
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb84 - pended\n");
-		//UdecxUrbSetBytesCompleted(Request, (ULONG)transferBufferLength);
-		//UdecxUrbCompleteWithNtStatus(Request, STATUS_SUCCESS);
-	}
-	*/
 	memset(transferBuffer, 0x00, transferBufferLength);
-	//UdecxUrbSetBytesCompleted(Request, transferBufferLength);
-	//UdecxUrbCompleteWithNtStatus(Request, status);
 
 exit:
 	return;
