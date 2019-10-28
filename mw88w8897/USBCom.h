@@ -35,10 +35,16 @@ typedef struct _DEVICE_INTR_STATE {
 typedef struct _IO_CONTEXT {
     WDFQUEUE          ControlQueue;
 	WDFQUEUE          RxCmdQueue;
-    WDFQUEUE          BulkOutQueue;
+    WDFQUEUE          BulkOutQueue1;
 	WDFQUEUE          BulkOutQueue2;
-    WDFQUEUE          BulkInQueue;
-    WDFQUEUE          InterruptUrbQueue;
+	WDFQUEUE          BulkOutQueue4;
+	WDFQUEUE          BulkOutQueue6;
+    WDFQUEUE          BulkInQueue81;
+	WDFQUEUE          BulkInQueue82;
+	WDFQUEUE          BulkInQueue84;
+    WDFQUEUE          InterruptUrbQueue83;
+	WDFQUEUE          IsoOutQueue5;
+	WDFQUEUE          IsoInQueue85;
     WDFQUEUE          IntrDeferredQueue;
     BOOLEAN           bStopping;
 

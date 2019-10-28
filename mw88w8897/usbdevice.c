@@ -28,131 +28,17 @@ Abstract:
 
 
 DECLARE_CONST_UNICODE_STRING(g_ManufacturerStringEnUs, L"Marvell");
-DECLARE_CONST_UNICODE_STRING(g_ProductStringEnUs, L"Marvell Wireless Device");
-DECLARE_CONST_UNICODE_STRING(g_SerialStringEnUs, L"0000000000000000");
+DECLARE_CONST_UNICODE_STRING(g_ProductStringEnUs, L"Bluetooth and Wireless LAN Composite Device");
+DECLARE_CONST_UNICODE_STRING(g_SerialStringEnUs, L"6045BDDB2C7C");
+DECLARE_CONST_UNICODE_STRING(g_InterfaceStringEnUs, L"Wireless LAN Interface");
 
 
 const USHORT AMERICAN_ENGLISH = 0x409;
 
 const UCHAR g_LanguageDescriptor[] = { 4,3,9,4 };
 
-
-// PID 0x2043 descriptors
-const UCHAR g_UsbDeviceDescriptor[18] =
-{
-    0x12,                            // Descriptor size
-    USB_DEVICE_DESCRIPTOR_TYPE,      // Device descriptor type
-    0x00, 0x02,                      // USB 2.0
-    0x00,                            // Device class (interface-class defined)
-    0x00,                            // Device subclass
-    0x00,                            // Device protocol
-    0x40,                            // Maxpacket size for EP0
-    MWIFIEX_DEVICE_VENDOR_ID,         // Vendor ID
-    MWIFIEX_DEVICE_PROD_ID,           // Product ID
-    0x00,                            // LSB of firmware revision
-    0x01,                            // MSB of firmware revision
-    0x01,                            // Manufacture string index
-    0x02,                            // Product string index
-    0x03,                            // Serial number string index
-    0x01                             // Number of configurations
-};
-
-const UCHAR g_UsbConfigDescriptorSet[] =
-{
-    // Configuration Descriptor Type
-    0x9,                              // Descriptor Size
-    USB_CONFIGURATION_DESCRIPTOR_TYPE, // Configuration Descriptor Type
-    0x20, 0x00,                        // Length of this descriptor and all sub descriptors
-    0x01,                               // Number of interfaces	// 2 interfaces for the mwifiex card
-    0x01,                              // Configuration number
-    0x00,                              // Configuration string index
-    0x80,                              // Config characteristics - bus powered
-    0xFA,                              // Max power consumption of device (in 2mA unit) : 500 mA
-
-        // Interface  descriptor
-        0x9,                                      // Descriptor size
-        USB_INTERFACE_DESCRIPTOR_TYPE,             // Interface Association Descriptor Type
-        0,                                        // bInterfaceNumber
-        0,                                        // bAlternateSetting
-        2,                                        // bNumEndpoints
-        0xFF,                                     // bInterfaceClass
-        0xFF,                                     // bInterfaceSubClass
-        0xFF,                                     // bInterfaceProtocol
-        0x00,                                     // iInterface
-
-		// Interrupt IN endpoint descriptor
-		0x07,                           // Descriptor size 
-		USB_ENDPOINT_DESCRIPTOR_TYPE,   // Descriptor type
-		0x01,     // Endpoint address and description
-		USB_ENDPOINT_TYPE_BULK,    // bmAttributes - interrupt
-		0x00, 0x02,                      // Max packet size = 512
-		0x00,                            // Servicing interval for interrupt (1ms/1 frame)
-
-		// Rx CMD/EVT Endpoint descriptor
-		0x07,                           // Descriptor size
-		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-		0x81,       // bEndpointAddress
-		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-		0x00, 0x2,                      // wMaxPacketSize
-		0x00,                           // bInterval
-
-		
-		/*
-		// Bulk In Endpoint descriptor
-		0x07,                           // Descriptor size
-		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-		0x82,       // bEndpointAddress
-		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-		0x00, 0x2,                      // wMaxPacketSize
-		0x00,                           // bInterval
-
-		// Bulk Out Endpoint descriptor
-		0x07,                           // Descriptor size
-		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-		g_BulkOutEndpointAddress,       // bEndpointAddress
-		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-		0x00, 0x2,                      // wMaxPacketSize
-		0x00,                           // bInterval
-
-		// Bulk Out Channel 2 Endpoint descriptor
-		0x07,                           // Descriptor size
-		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-		0x03,       // bEndpointAddress
-		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-		0x00, 0x2,                      // wMaxPacketSize
-		0x00,                           // bInterval
-
-		
-
-		/*
-        // Bulk Out Endpoint descriptor
-        0x07,                           // Descriptor size
-        USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-        g_BulkOutEndpointAddress,       // bEndpointAddress
-        USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-        0x00, 0x2,                      // wMaxPacketSize
-        0x00,                           // bInterval
-
-        // Bulk IN endpoint descriptor
-        0x07,                           // Descriptor size 
-        USB_ENDPOINT_DESCRIPTOR_TYPE,   // Descriptor type
-        g_BulkInEndpointAddress,        // Endpoint address and description
-        USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-        0x00, 0x02,                     // Max packet size
-        0x00,                           // Servicing interval for data transfers : NA for bulk
-
-        // Interrupt IN endpoint descriptor
-        0x07,                           // Descriptor size 
-        USB_ENDPOINT_DESCRIPTOR_TYPE,   // Descriptor type
-        g_InterruptEndpointAddress,     // Endpoint address and description
-        USB_ENDPOINT_TYPE_INTERRUPT,    // bmAttributes - interrupt
-        0x40, 0x0,                      // Max packet size = 64
-        0x01                            // Servicing interval for interrupt (1ms/1 frame)
-		*/
-};
-
 // PID 0x2044 descriptors
-const UCHAR g_UsbDeviceDescriptor2[18] =
+const UCHAR g_UsbDeviceDescriptor[18] =
 {
 	0x12,                            // Descriptor size
 	USB_DEVICE_DESCRIPTOR_TYPE,      // Device descriptor type
@@ -171,9 +57,20 @@ const UCHAR g_UsbDeviceDescriptor2[18] =
 	0x01                             // Number of configurations
 };
 
-const UCHAR g_UsbConfigDescriptorSet2[] =
+const UCHAR g_UsbConfigDescriptorSet[] =
 {
-	// Configuration Descriptor Type
+	/*
+			===>Configuration Descriptor<===
+		bLength:                           0x09
+		bDescriptorType:                   0x02
+		wTotalLength:                    0x00E5  -> Validated
+		bNumInterfaces:                    0x03
+		bConfigurationValue:               0x01
+		iConfiguration:                    0x00
+		bmAttributes:                      0xE0  -> Self Powered
+		  -> Remote Wakeup
+		MaxPower:                          0xFA = 500 mA
+	*/
 	0x9,                              // Descriptor Size
 	USB_CONFIGURATION_DESCRIPTOR_TYPE, // Configuration Descriptor Type
 	0xE5, 0x00,                        // Length of this descriptor and all sub descriptors
@@ -183,7 +80,18 @@ const UCHAR g_UsbConfigDescriptorSet2[] =
 	0xE0,                              // Config characteristics - bus powered
 	0xFA,                              // Max power consumption of device (in 2mA unit) : 500 mA
 
-		// IAD  descriptor
+
+		/*
+							  ===>IAD Descriptor<===
+			bLength:                           0x08
+			bDescriptorType:                   0x0B
+			bFirstInterface:                   0x00
+			bInterfaceCount:                   0x02
+			bFunctionClass:                    0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+			bFunctionSubClass:                 0x01
+			bFunctionProtocol:                 0x01
+			iFunction:                         0x00
+		*/
 		0x08,											// Descriptor size
 		USB_INTERFACE_ASSOCIATION_DESCRIPTOR_TYPE,      // Interface Association Descriptor Type
 		0x00,											// bFirstInterface
@@ -193,7 +101,18 @@ const UCHAR g_UsbConfigDescriptorSet2[] =
 		0x01,											// bFunctionProtocol
 		0x00,											// iFunction
 
-		// Interface  descriptor
+		/*
+							  ===>Interface Descriptor<===
+			bLength:                           0x09
+			bDescriptorType:                   0x04
+			bInterfaceNumber:                  0x00
+			bAlternateSetting:                 0x00
+			bNumEndpoints:                     0x03
+			bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+			bInterfaceSubClass:                0x01
+			bInterfaceProtocol:                0x01
+			iInterface:                        0x00
+		*/
 		0x9,										// Descriptor size
 		USB_INTERFACE_DESCRIPTOR_TYPE,				// Interface Association Descriptor Type
 		0x00,                                       // bInterfaceNumber
@@ -204,22 +123,482 @@ const UCHAR g_UsbConfigDescriptorSet2[] =
 		0x01,										// bInterfaceProtocol
 		0x00,										// iInterface
 
-		// Interrupt IN endpoint descriptor
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x83  -> Direction: IN - EndpointID: 3
+			bmAttributes:                      0x03  -> Interrupt Transfer Type
+			wMaxPacketSize:                  0x0040 = 1 transactions per microframe, 0x40 max bytes
+			bInterval:                         0x01
+		*/
 		0x07,                           // Descriptor size 
 		USB_ENDPOINT_DESCRIPTOR_TYPE,   // Descriptor type
-		0x83,							// Endpoint address and description
-		USB_ENDPOINT_TYPE_INTERRUPT,			// bmAttributes - interrupt
+		g_InterruptEndpointAddress83,	// Endpoint address and description
+		USB_ENDPOINT_TYPE_INTERRUPT,	// bmAttributes - interrupt
 		0x00, 0x04,                     // Max packet size = 512
 		0x01,                           // Servicing interval for interrupt (1ms/1 frame)
 
-		// Bulk IN endpoint descriptor
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x84  -> Direction: IN - EndpointID: 4
+			bmAttributes:                      0x02  -> Bulk Transfer Type
+			wMaxPacketSize:                  0x0200 = 0x200 max bytes
+			bInterval:                         0x00
+		*/
 		0x07,                           // Descriptor size
 		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-		0x84,							// bEndpointAddress
+		g_BulkInEndpointAddress84,		// bEndpointAddress
 		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-		0x00, 0x2,                      // wMaxPacketSize
+		0x00, 0x02,                     // wMaxPacketSize
 		0x00,							// bInterval
 
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x04  -> Direction: OUT - EndpointID: 4
+			bmAttributes:                      0x02  -> Bulk Transfer Type
+			wMaxPacketSize:                  0x0200 = 0x200 max bytes
+			bInterval:                         0xFF
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_BulkOutEndpointAddress4,		// bEndpointAddress
+		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
+		0x00, 0x02,                     // wMaxPacketSize
+		0xFF,							// bInterval
+
+		/*
+							  ===>Interface Descriptor<===
+			bLength:                           0x09
+			bDescriptorType:                   0x04
+			bInterfaceNumber:                  0x01
+			bAlternateSetting:                 0x00
+			bNumEndpoints:                     0x02
+			bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+			bInterfaceSubClass:                0x01
+			bInterfaceProtocol:                0x01
+			iInterface:                        0x00
+		*/
+		0x9,										// Descriptor size
+		USB_INTERFACE_DESCRIPTOR_TYPE,				// Interface Association Descriptor Type
+		0x01,                                       // bInterfaceNumber
+		0x00,                                       // bAlternateSetting
+		0x02,                                       // bNumEndpoints
+		0xE0,										// bInterfaceClass
+		0x01,										// bInterfaceSubClass
+		0x01,										// bInterfaceProtocol
+		0x00,										// iInterface
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0000*!*ERROR:  Invalid maximum packet size, should be between 1 and 1024
+			 = 1 transactions per microframe, 0x00 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousInEndpointAddress85,	// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x00, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0000*!*ERROR:  Invalid maximum packet size, should be between 1 and 1024
+			 = 1 transactions per microframe, 0x00 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousOutEndpointAddress5,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x00, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Interface Descriptor<===
+			bLength:                           0x09
+			bDescriptorType:                   0x04
+			bInterfaceNumber:                  0x01
+			bAlternateSetting:                 0x01
+			bNumEndpoints:                     0x02
+			bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+			bInterfaceSubClass:                0x01
+			bInterfaceProtocol:                0x01
+			iInterface:                        0x00
+		*/
+		0x9,										// Descriptor size
+		USB_INTERFACE_DESCRIPTOR_TYPE,				// Interface Association Descriptor Type
+		0x01,                                       // bInterfaceNumber
+		0x01,                                       // bAlternateSetting
+		0x02,                                       // bNumEndpoints
+		0xE0,										// bInterfaceClass
+		0x01,										// bInterfaceSubClass
+		0x01,										// bInterfaceProtocol
+		0x00,										// iInterface
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0009 = 1 transactions per microframe, 0x09 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousInEndpointAddress85,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x09, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0009 = 1 transactions per microframe, 0x09 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousOutEndpointAddress5,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x09, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Interface Descriptor<===
+			bLength:                           0x09
+			bDescriptorType:                   0x04
+			bInterfaceNumber:                  0x01
+			bAlternateSetting:                 0x02
+			bNumEndpoints:                     0x02
+			bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+			bInterfaceSubClass:                0x01
+			bInterfaceProtocol:                0x01
+			iInterface:                        0x00
+		*/
+		0x9,										// Descriptor size
+		USB_INTERFACE_DESCRIPTOR_TYPE,				// Interface Association Descriptor Type
+		0x01,                                       // bInterfaceNumber
+		0x02,                                       // bAlternateSetting
+		0x02,                                       // bNumEndpoints
+		0xE0,										// bInterfaceClass
+		0x01,										// bInterfaceSubClass
+		0x01,										// bInterfaceProtocol
+		0x00,										// iInterface
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0011 = 1 transactions per microframe, 0x11 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousInEndpointAddress85,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x11, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0011 = 1 transactions per microframe, 0x11 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousOutEndpointAddress5,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x11, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Interface Descriptor<===
+			bLength:                           0x09
+			bDescriptorType:                   0x04
+			bInterfaceNumber:                  0x01
+			bAlternateSetting:                 0x03
+			bNumEndpoints:                     0x02
+			bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+			bInterfaceSubClass:                0x01
+			bInterfaceProtocol:                0x01
+			iInterface:                        0x00
+		*/
+		0x9,										// Descriptor size
+		USB_INTERFACE_DESCRIPTOR_TYPE,				// Interface Association Descriptor Type
+		0x01,                                       // bInterfaceNumber
+		0x03,                                       // bAlternateSetting
+		0x02,                                       // bNumEndpoints
+		0xE0,										// bInterfaceClass
+		0x01,										// bInterfaceSubClass
+		0x01,										// bInterfaceProtocol
+		0x00,										// iInterface
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0019 = 1 transactions per microframe, 0x19 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousInEndpointAddress85,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x19, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0019 = 1 transactions per microframe, 0x19 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousOutEndpointAddress5,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x19, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Interface Descriptor<===
+			bLength:                           0x09
+			bDescriptorType:                   0x04
+			bInterfaceNumber:                  0x01
+			bAlternateSetting:                 0x04
+			bNumEndpoints:                     0x02
+			bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+			bInterfaceSubClass:                0x01
+			bInterfaceProtocol:                0x01
+			iInterface:                        0x00
+		*/
+		0x9,										// Descriptor size
+		USB_INTERFACE_DESCRIPTOR_TYPE,				// Interface Association Descriptor Type
+		0x01,                                       // bInterfaceNumber
+		0x04,                                       // bAlternateSetting
+		0x02,                                       // bNumEndpoints
+		0xE0,										// bInterfaceClass
+		0x01,										// bInterfaceSubClass
+		0x01,										// bInterfaceProtocol
+		0x00,										// iInterface
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0021 = 1 transactions per microframe, 0x21 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousInEndpointAddress85,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x21, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0021 = 1 transactions per microframe, 0x21 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousOutEndpointAddress5,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x21, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Interface Descriptor<===
+			bLength:                           0x09
+			bDescriptorType:                   0x04
+			bInterfaceNumber:                  0x01
+			bAlternateSetting:                 0x05
+			bNumEndpoints:                     0x02
+			bInterfaceClass:                   0xE0  -> This is a Wireless RF Controller USB Device Interface Class with Bluetooth Programming Interface
+			bInterfaceSubClass:                0x01
+			bInterfaceProtocol:                0x01
+			iInterface:                        0x00
+		*/
+		0x9,										// Descriptor size
+		USB_INTERFACE_DESCRIPTOR_TYPE,				// Interface Association Descriptor Type
+		0x01,                                       // bInterfaceNumber
+		0x05,                                       // bAlternateSetting
+		0x02,                                       // bNumEndpoints
+		0xE0,										// bInterfaceClass
+		0x01,										// bInterfaceSubClass
+		0x01,										// bInterfaceProtocol
+		0x00,										// iInterface
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x85  -> Direction: IN - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0031 = 1 transactions per microframe, 0x31 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousInEndpointAddress85,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x31, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x05  -> Direction: OUT - EndpointID: 5
+			bmAttributes:                      0x01  -> Isochronous Transfer Type, Synchronization Type = No Synchronization, Usage Type = Data Endpoint
+			wMaxPacketSize:                  0x0031 = 1 transactions per microframe, 0x31 max bytes
+			bInterval:                         0x04
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_IsocronousOutEndpointAddress5,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_ISOCHRONOUS,  // bmAttributes - bulk
+		0x31, 0x00,                      // wMaxPacketSize
+		0x04,							// bInterval
+
+		/*
+							  ===>Interface Descriptor<===
+			bLength:                           0x09
+			bDescriptorType:                   0x04
+			bInterfaceNumber:                  0x02
+			bAlternateSetting:                 0x00
+			bNumEndpoints:                     0x05
+			bInterfaceClass:                   0xFF  -> Interface Class Unknown to USBView
+			bInterfaceSubClass:                0xFF
+			bInterfaceProtocol:                0xFF
+			iInterface:                        0x05
+				 English (United States)  "Wireless LAN Interface"
+		*/
+		0x9,										// Descriptor size
+		USB_INTERFACE_DESCRIPTOR_TYPE,				// Interface Association Descriptor Type
+		0x02,                                       // bInterfaceNumber
+		0x00,                                       // bAlternateSetting
+		0x05,                                       // bNumEndpoints
+		0xFF,										// bInterfaceClass
+		0xFF,										// bInterfaceSubClass
+		0xFF,										// bInterfaceProtocol
+		0x05,										// iInterface
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x01  -> Direction: OUT - EndpointID: 1
+			bmAttributes:                      0x02  -> Bulk Transfer Type
+			wMaxPacketSize:                  0x0200 = 0x200 max bytes
+			bInterval:                         0x00
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_BulkOutEndpointAddress1,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_BULK,			// bmAttributes - bulk
+		0x00, 0x02,                     // wMaxPacketSize
+		0x00,							// bInterval
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x81  -> Direction: IN - EndpointID: 1
+			bmAttributes:                      0x02  -> Bulk Transfer Type
+			wMaxPacketSize:                  0x0200 = 0x200 max bytes
+			bInterval:                         0x00
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_BulkInEndpointAddress81,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_BULK,			// bmAttributes - bulk
+		0x00, 0x02,                     // wMaxPacketSize
+		0x00,							// bInterval
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x02  -> Direction: OUT - EndpointID: 2
+			bmAttributes:                      0x02  -> Bulk Transfer Type
+			wMaxPacketSize:                  0x0200 = 0x200 max bytes
+			bInterval:                         0x00
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_BulkOutEndpointAddress2,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_BULK,			// bmAttributes - bulk
+		0x00, 0x02,                     // wMaxPacketSize
+		0x00,							// bInterval
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x82  -> Direction: IN - EndpointID: 2
+			bmAttributes:                      0x02  -> Bulk Transfer Type
+			wMaxPacketSize:                  0x0200 = 0x200 max bytes
+			bInterval:                         0x00
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_BulkInEndpointAddress82,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_BULK,			// bmAttributes - bulk
+		0x00, 0x02,                     // wMaxPacketSize
+		0x00,							// bInterval
+
+		/*
+							  ===>Endpoint Descriptor<===
+			bLength:                           0x07
+			bDescriptorType:                   0x05
+			bEndpointAddress:                  0x06  -> Direction: OUT - EndpointID: 6
+			bmAttributes:                      0x02  -> Bulk Transfer Type
+			wMaxPacketSize:                  0x0200 = 0x200 max bytes
+			bInterval:                         0x00
+		*/
+		0x07,                           // Descriptor size
+		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
+		g_BulkOutEndpointAddress6,							// bEndpointAddress
+		USB_ENDPOINT_TYPE_BULK,			// bmAttributes - bulk
+		0x00, 0x02,                     // wMaxPacketSize
+		0x00,							// bInterval
 };
 
 
@@ -369,6 +748,16 @@ Usb_Initialize(
 		goto exit;
 	}
 
+	status = UdecxUsbDeviceInitAddStringDescriptor(controllerContext->ChildDeviceInit,
+		&g_InterfaceStringEnUs,
+		g_InterfaceIndex,
+		AMERICAN_ENGLISH);
+
+	if (!NT_SUCCESS(status)) {
+
+		goto exit;
+	}
+
     //
     // Remaining init requires lower edge interaction.  Postpone to Usb_ReadDescriptorsAndPlugIn.
     //
@@ -466,7 +855,7 @@ Usb_ReadDescriptorsAndPlugIn(
 
 	// We have different endpoints
 
-	// Keep this because I don't know what it does
+	// Control Endpoint
 	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
 		USB_DEFAULT_ENDPOINT_ADDRESS,
 		&(deviceContext->MWIFIEXControlEndpoint));
@@ -476,47 +865,119 @@ Usb_ReadDescriptorsAndPlugIn(
 		goto exit;
 	}
 
-	// ENDPOINT 1/5 (BULK OUT 1)
+	// ENDPOINT
 	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-		g_BulkOutEndpointAddress,
-		&(deviceContext->MWIFIEXBulkOutEndpoint));
+		g_BulkOutEndpointAddress1,
+		&(deviceContext->MWIFIEXBulkOutEndpoint1));
 
 	if (!NT_SUCCESS(status)) {
 
 		goto exit;
 	}
 
-	// ENDPOINT 2/5 (BULK IN)
+	// ENDPOINT
 	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-		0x82,
-		&(deviceContext->MWIFIEXBulkInEndpoint));
+		g_BulkOutEndpointAddress2,
+		&(deviceContext->MWIFIEXBulkOutEndpoint2));
 
 	if (!NT_SUCCESS(status)) {
 
 		goto exit;
 	}
 
-	// ENDPOINT 3/5 (Interrupt)
+	// ENDPOINT
 	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-		0x01,
-		&(deviceContext->MWIFIEXInterruptInEndpoint));
+		g_BulkOutEndpointAddress4,
+		&(deviceContext->MWIFIEXBulkOutEndpoint4));
 
 	if (!NT_SUCCESS(status)) {
 
 		goto exit;
 	}
 
-	// ENDPOINT 4/5 (BULK OUT 2)
+	// ENDPOINT
 	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-		0x03,
-		&(deviceContext->MWIFIEXBulkOut2Endpoint));
+		g_BulkOutEndpointAddress6,
+		&(deviceContext->MWIFIEXBulkOutEndpoint6));
 
 	if (!NT_SUCCESS(status)) {
 
 		goto exit;
 	}
 
-	// ENDPOINT 5/5 (Interrupt)
+	// ENDPOINT
+	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
+		g_BulkInEndpointAddress81,
+		&(deviceContext->MWIFIEXBulkInEndpoint81));
+
+	if (!NT_SUCCESS(status)) {
+
+		goto exit;
+	}
+
+	// ENDPOINT
+	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
+		g_BulkInEndpointAddress82,
+		&(deviceContext->MWIFIEXBulkInEndpoint82));
+
+	if (!NT_SUCCESS(status)) {
+
+		goto exit;
+	}
+
+	// ENDPOINT
+	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
+		g_BulkInEndpointAddress84,
+		&(deviceContext->MWIFIEXBulkInEndpoint84));
+
+	if (!NT_SUCCESS(status)) {
+
+		goto exit;
+	}
+
+	// ENDPOINT
+	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
+		g_InterruptEndpointAddress83,
+		&(deviceContext->MWIFIEXInterruptInEndpoint83));
+
+	if (!NT_SUCCESS(status)) {
+
+		goto exit;
+	}
+
+	// ENDPOINT
+	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
+		g_IsocronousOutEndpointAddress5,
+		&(deviceContext->MWIFIEXIsoOutEndpoint5));
+
+	if (!NT_SUCCESS(status)) {
+
+		goto exit;
+	}
+
+	// ENDPOINT
+	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
+		g_IsocronousInEndpointAddress85,
+		&(deviceContext->MWIFIEXIsoInEndpoint85));
+
+	if (!NT_SUCCESS(status)) {
+
+		goto exit;
+	}
+
+	// ENDPOINT
+	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
+		USB_DEFAULT_ENDPOINT_ADDRESS,
+		&(deviceContext->MWIFIEXControlEndpoint));
+
+	if (!NT_SUCCESS(status)) {
+
+		goto exit;
+	}
+
+
+	// Why is this here? cmd should be 0?
+	/*
 	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
 		0x81,
 		&(deviceContext->MWIFIEXRxCmdEndpoint));
@@ -525,6 +986,7 @@ Usb_ReadDescriptorsAndPlugIn(
 
 		goto exit;
 	}
+	*/
 
     //
     // Create static endpoints.
