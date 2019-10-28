@@ -564,69 +564,6 @@ exit:
 }
 
 static VOID
-IoEvtBulkInUrb84OLD(
-	_In_ WDFQUEUE Queue,
-	_In_ WDFREQUEST Request,
-	_In_ size_t OutputBufferLength,
-	_In_ size_t InputBufferLength,
-	_In_ ULONG IoControlCode
-)
-{
-	//DbgPrint("[MWIFIEX] IoEvtBulkInUrb\n");
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb84\n");
-	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkInUrb");
-	NTSTATUS status = STATUS_SUCCESS;
-	WDFDEVICE backchannel;
-	PUDECX_BACKCHANNEL_CONTEXT pBackChannelContext;
-	PENDPOINTQUEUE_CONTEXT pEpQContext;
-	//BOOLEAN bReady = FALSE;
-	PUCHAR transferBuffer;
-	ULONG transferBufferLength;
-	//SIZE_T completeBytes = 0;
-
-	UNREFERENCED_PARAMETER(OutputBufferLength);
-	UNREFERENCED_PARAMETER(InputBufferLength);
-
-	pEpQContext = GetEndpointQueueContext(Queue);
-	backchannel = pEpQContext->backChannelDevice;
-	pBackChannelContext = GetBackChannelContext(backchannel);
-
-	if (IoControlCode != IOCTL_INTERNAL_USB_SUBMIT_URB)
-	{
-		LogError(TRACE_DEVICE, "WdfRequest BIN %p Incorrect IOCTL %x, %!STATUS!",
-			Request, IoControlCode, status);
-		status = STATUS_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	status = UdecxUrbRetrieveBuffer(Request, &transferBuffer, &transferBufferLength);
-	if (!NT_SUCCESS(status))
-	{
-		//DbgPrint("[MWIFIEX] Bulk In - unable to retrieve buffer\n");
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Bulk In - unable to retrieve buffer\n");
-		LogError(TRACE_DEVICE, "WdfRequest BIN %p unable to retrieve buffer %!STATUS!",
-			Request, status);
-		goto exit;
-	}
-
-	//DbgPrint("[MWIFIEX] Bulk In - transferBufferLength: %lu\n", transferBufferLength);
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Bulk In - transferBufferLength: %lu\n", transferBufferLength);
-	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkInUrb transferBufferLength: %lu", transferBufferLength);
-	//hexdump(transferBuffer, transferBufferLength);
-
-
-	// We have no mission, so don't let this pend (STATUS_SUCCESS)
-	UdecxUrbSetBytesCompleted(Request, (ULONG)transferBufferLength);
-	UdecxUrbCompleteWithNtStatus(Request, STATUS_SUCCESS);
-	LogInfo(TRACE_DEVICE, "Mission response %p completed with pre-existing data", Request);
-
-
-exit:
-	return;
-}
-
-
-static VOID
 IoEvtBulkInUrb84(
 	_In_ WDFQUEUE Queue,
 	_In_ WDFREQUEST Request,
@@ -953,16 +890,10 @@ IoEvtInterruptInUrb83(
     UNREFERENCED_PARAMETER(OutputBufferLength);
     UNREFERENCED_PARAMETER(InputBufferLength);
 
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - GetEndpointQueueContext\n");
     pEpQContext = GetEndpointQueueContext(Queue);
-
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - tgtDevice\n");
     tgtDevice = pEpQContext->usbDeviceObj;
-
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - WdfDeviceGetIoContext\n");
     pIoContext = WdfDeviceGetIoContext(tgtDevice);
 
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - if IOCTL_INTERNAL_USB_SUBMIT_URB\n");
     if (IoControlCode != IOCTL_INTERNAL_USB_SUBMIT_URB)   {
 		//DbgPrint("[MWIFIEX] IoEvt Invalid Interrupt/IN out IOCTL code %x\n", IoControlCode);
 		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvt Invalid Interrupt/IN out IOCTL code %x\n", IoControlCode);
@@ -971,47 +902,33 @@ IoEvtInterruptInUrb83(
         goto exit;
     }
 
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - WdfSpinLockAcquire\n");
     // gate cached data we may have and clear it
     WdfSpinLockAcquire(pIoContext->IntrState.sync);
 
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - if numUnreadUpdates\n");
     if( pIoContext->IntrState.numUnreadUpdates > 0)
     {
         bHasData = TRUE;
 		//DbgPrint("[MWIFIEX] IoEvt bHasData\n");
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvt bHasData\n");
 		LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvt bHasData");
         LatestStatus = pIoContext->IntrState.latestStatus;
     }
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - latestStatus\n");
     pIoContext->IntrState.latestStatus = 0;
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - numUnreadUpdates\n");
     pIoContext->IntrState.numUnreadUpdates = 0;
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - WdfSpinLockRelease\n");
     WdfSpinLockRelease(pIoContext->IntrState.sync);
 
 
     if (bHasData)  {
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - bHasData\n");
         IoCompletePendingRequest(Request, LatestStatus);
-
     } else {
-
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - else bHasData\n");
         status = WdfRequestForwardToIoQueue(Request, pIoContext->IntrDeferredQueue);
         if (NT_SUCCESS(status)) {
-			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - success\n");
             LogInfo(TRACE_DEVICE, "Request %p forwarded for later", Request);
         } else {
-			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - !success\n");
             LogError(TRACE_DEVICE, "ERROR: Unable to forward Request %p error %!STATUS!", Request, status);
             UdecxUrbCompleteWithNtStatus(Request, status);
         }
 
     }
-
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtInterruptInUrb83 - done\n");
 
 exit:
     return;
