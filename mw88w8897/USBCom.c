@@ -20,6 +20,7 @@ Abstract:
 #include "BackChannel.h"
 #include "ucx/1.4/ucxobjects.h"
 #include "USBCom.tmh"
+#include "Mwifiex.h"
 
 typedef struct _ENDPOINTQUEUE_CONTEXT {
     UDECXUSBDEVICE usbDeviceObj;
@@ -242,15 +243,25 @@ IoEvtBulkOutUrb1(
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkOutUrb - transferBufferLength: %lu\n", transferBufferLength);
 
 	hexdump(transferBuffer, transferBufferLength);
+	if (transferBufferLength >= 8) {
+		// Print out the HostCmd
+	}
+
+	if (transferBufferLength >= 8) {
+		PrintMwifiexCmd(transferBuffer);
+	}
 
 	memset(transferBuffer, 0x00, transferBufferLength);
 
 	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Bulk Out - transferBufferLength: %lu\n", transferBufferLength);
 
+
 	// END Firmware continued
+	/*
 	if (transferBufferLength == 20) {
 		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Firmware Download Complete. Begin Mode Switch...\n");
 	}
+	*/
 
 exit:
     // writes never pended, always completed

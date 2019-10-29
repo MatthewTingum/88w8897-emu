@@ -1,0 +1,88 @@
+#pragma once
+
+void PrintMwifiexCmd(void* command);
+
+typedef struct _HostCmd {
+	_int32 command_type;
+	unsigned short hostCmd;
+	unsigned short size;
+	unsigned short seq_num;
+	unsigned short result;
+} HostCmd, *PHostCommand;
+
+#define MWIFIEX_TYPE_LEN				4
+#define MWIFIEX_USB_TYPE_CMD			0xF00DFACE
+#define MWIFIEX_USB_TYPE_DATA			0xBEADC0DE
+#define MWIFIEX_USB_TYPE_EVENT			0xBEEFFACE
+
+#define HostCmd_CMD_GET_HW_SPEC                       0x0003
+#define HostCmd_CMD_802_11_SCAN                       0x0006
+#define HostCmd_CMD_802_11_GET_LOG                    0x000b
+#define HostCmd_CMD_MAC_MULTICAST_ADR                 0x0010
+#define HostCmd_CMD_802_11_EEPROM_ACCESS              0x0059
+#define HostCmd_CMD_802_11_ASSOCIATE                  0x0012
+#define HostCmd_CMD_802_11_SNMP_MIB                   0x0016
+#define HostCmd_CMD_MAC_REG_ACCESS                    0x0019
+#define HostCmd_CMD_BBP_REG_ACCESS                    0x001a
+#define HostCmd_CMD_RF_REG_ACCESS                     0x001b
+#define HostCmd_CMD_PMIC_REG_ACCESS                   0x00ad
+#define HostCmd_CMD_RF_TX_PWR                         0x001e
+#define HostCmd_CMD_RF_ANTENNA                        0x0020
+#define HostCmd_CMD_802_11_DEAUTHENTICATE             0x0024
+#define HostCmd_CMD_MAC_CONTROL                       0x0028
+#define HostCmd_CMD_802_11_AD_HOC_START               0x002b
+#define HostCmd_CMD_802_11_AD_HOC_JOIN                0x002c
+#define HostCmd_CMD_802_11_AD_HOC_STOP                0x0040
+#define HostCmd_CMD_802_11_MAC_ADDRESS                0x004D
+#define HostCmd_CMD_802_11D_DOMAIN_INFO               0x005b
+#define HostCmd_CMD_802_11_KEY_MATERIAL               0x005e
+#define HostCmd_CMD_802_11_BG_SCAN_CONFIG             0x006b
+#define HostCmd_CMD_802_11_BG_SCAN_QUERY              0x006c
+#define HostCmd_CMD_WMM_GET_STATUS                    0x0071
+#define HostCmd_CMD_802_11_SUBSCRIBE_EVENT            0x0075
+#define HostCmd_CMD_802_11_TX_RATE_QUERY              0x007f
+#define HostCmd_CMD_802_11_IBSS_COALESCING_STATUS     0x0083
+#define HostCmd_CMD_MEM_ACCESS                        0x0086
+#define HostCmd_CMD_CFG_DATA                          0x008f
+#define HostCmd_CMD_VERSION_EXT                       0x0097
+#define HostCmd_CMD_MEF_CFG                           0x009a
+#define HostCmd_CMD_RSSI_INFO                         0x00a4
+#define HostCmd_CMD_FUNC_INIT                         0x00a9
+#define HostCmd_CMD_FUNC_SHUTDOWN                     0x00aa
+#define HOST_CMD_APCMD_SYS_RESET                      0x00af
+#define HostCmd_CMD_UAP_SYS_CONFIG                    0x00b0
+#define HostCmd_CMD_UAP_BSS_START                     0x00b1
+#define HostCmd_CMD_UAP_BSS_STOP                      0x00b2
+#define HOST_CMD_APCMD_STA_LIST                       0x00b3
+#define HostCmd_CMD_UAP_STA_DEAUTH                    0x00b5
+#define HostCmd_CMD_11N_CFG                           0x00cd
+#define HostCmd_CMD_11N_ADDBA_REQ                     0x00ce
+#define HostCmd_CMD_11N_ADDBA_RSP                     0x00cf
+#define HostCmd_CMD_11N_DELBA                         0x00d0
+#define HostCmd_CMD_RECONFIGURE_TX_BUFF               0x00d9
+#define HostCmd_CMD_CHAN_REPORT_REQUEST               0x00dd
+#define HostCmd_CMD_AMSDU_AGGR_CTRL                   0x00df
+#define HostCmd_CMD_TXPWR_CFG                         0x00d1
+#define HostCmd_CMD_TX_RATE_CFG                       0x00d6
+#define HostCmd_CMD_ROBUST_COEX                       0x00e0
+#define HostCmd_CMD_802_11_PS_MODE_ENH                0x00e4
+#define HostCmd_CMD_802_11_HS_CFG_ENH                 0x00e5
+#define HostCmd_CMD_P2P_MODE_CFG                      0x00eb
+#define HostCmd_CMD_CAU_REG_ACCESS                    0x00ed
+#define HostCmd_CMD_SET_BSS_MODE                      0x00f7
+#define HostCmd_CMD_PCIE_DESC_DETAILS                 0x00fa
+#define HostCmd_CMD_802_11_SCAN_EXT                   0x0107
+#define HostCmd_CMD_COALESCE_CFG                      0x010a
+#define HostCmd_CMD_MGMT_FRAME_REG                    0x010c
+#define HostCmd_CMD_REMAIN_ON_CHAN                    0x010d
+#define HostCmd_CMD_GTK_REKEY_OFFLOAD_CFG             0x010f
+#define HostCmd_CMD_11AC_CFG						  0x0112
+#define HostCmd_CMD_HS_WAKEUP_REASON                  0x0116
+#define HostCmd_CMD_TDLS_CONFIG                       0x0100
+#define HostCmd_CMD_MC_POLICY                         0x0121
+#define HostCmd_CMD_TDLS_OPER                         0x0122
+#define HostCmd_CMD_FW_DUMP_EVENT					  0x0125
+#define HostCmd_CMD_SDIO_SP_RX_AGGR_CFG               0x0223
+#define HostCmd_CMD_STA_CONFIGURE					  0x023f
+#define HostCmd_CMD_CHAN_REGION_CFG					  0x0242
+#define HostCmd_CMD_PACKET_AGGR_CTRL				  0x0251

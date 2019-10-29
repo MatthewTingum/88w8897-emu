@@ -42,6 +42,7 @@
     <ClCompile Include="Device.c" />
     <ClCompile Include="Driver.c" />
     <ClCompile Include="Misc.c" />
+    <ClCompile Include="Mwifiex.c" />
     <ClCompile Include="USBCom.c" />
     <ClCompile Include="usbdevice.c" />
   </ItemGroup>
@@ -50,6 +51,7 @@
     <ClInclude Include="Device.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="Misc.h" />
+    <ClInclude Include="Mwifiex.h" />
     <ClInclude Include="Public.h" />
     <ClInclude Include="Trace.h" />
     <ClInclude Include="USBCom.h" />
