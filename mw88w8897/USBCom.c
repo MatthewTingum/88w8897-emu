@@ -93,7 +93,7 @@ exit:
 
 
 
-
+/*
 static VOID
 IoEvtControlUrb(
     _In_ WDFQUEUE Queue,
@@ -135,26 +135,25 @@ IoEvtControlUrb(
 			status = STATUS_SUCCESS;
 		}
 		transferedLength = transferBufferLength;
-		// This has something! -- LOGINFO IT!!!
-		//hexdump(transferBuffer, transferBufferLength);
+
+		hexdump(transferBuffer, transferBufferLength);
 		LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtControlUrb - transferBufferLength: %lu\n", transferBufferLength);
 		//DbgPrint("[MWIFIEX] IoEvtControlUrb - transferBufferLength: %lu\n", transferBufferLength);
 		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - transferBufferLength: %lu\n", transferBufferLength);
 
-		HANDLE hFile;
-		OBJECT_ATTRIBUTES objAttribs = { 0 };
-		PCWSTR filePath = L"\\??\\C:\\transferBuffer.bin";
-		UNICODE_STRING unicodeString;
-		RtlInitUnicodeString(&unicodeString, filePath);
-		InitializeObjectAttributes(&objAttribs, &unicodeString, OBJ_CASE_INSENSITIVE, NULL, NULL);
-		IO_STATUS_BLOCK ioStatusBlock = { 0 };
-		const int allocSize = 2048;
-		LARGE_INTEGER largeInteger;
-		largeInteger.QuadPart = allocSize;
-		NtCreateFile(&hFile, FILE_GENERIC_WRITE, &objAttribs, &ioStatusBlock, 0,
-			FILE_ATTRIBUTE_NORMAL, FILE_SHARE_WRITE, FILE_OVERWRITE_IF, FILE_RANDOM_ACCESS | FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT, NULL, 0);
-		NtWriteFile(hFile, NULL, NULL, NULL, &ioStatusBlock, transferBuffer, 2048, NULL, NULL);
-		NtClose(hFile);
+		//HANDLE hFile;
+		//OBJECT_ATTRIBUTES objAttribs = { 0 };
+		//PCWSTR filePath = L"\\??\\C:\\transferBuffer.bin";
+		//UNICODE_STRING unicodeString;
+		//RtlInitUnicodeString(&unicodeString, filePath);
+		//InitializeObjectAttributes(&objAttribs, &unicodeString, OBJ_CASE_INSENSITIVE, NULL, NULL);
+		//IO_STATUS_BLOCK ioStatusBlock = { 0 };
+		//const int allocSize = 2048;
+		//LARGE_INTEGER largeInteger;
+		//largeInteger.QuadPart = allocSize;
+		//NtCreateFile(&hFile, FILE_GENERIC_WRITE, &objAttribs, &ioStatusBlock, 0, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_WRITE, FILE_OVERWRITE_IF, FILE_RANDOM_ACCESS | FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT, NULL, 0);
+		//NtWriteFile(hFile, NULL, NULL, NULL, &ioStatusBlock, transferBuffer, 2048, NULL, NULL);
+		//NtClose(hFile);
 
 		// This seems to fail for us - maybe the transfer buffer has something interesting
         status = UdecxUrbRetrieveControlSetupPacket(Request, &setupPacket);
@@ -191,6 +190,168 @@ IoEvtControlUrb(
     }
 exit:
     return;
+}
+*/
+
+VOID
+IoEvtControlUrb(
+	_In_
+	WDFQUEUE Queue,
+	_In_
+	WDFREQUEST Request,
+	_In_
+	size_t OutputBufferLength,
+	_In_
+	size_t InputBufferLength,
+	_In_
+	ULONG IoControlCode
+)
+/*++
+Routine Description:
+	Handle all applicable USB MBIM control requests.
+Arguments:
+	Queue - Queue on which the request arrived
+	Request - Request to process
+	OutputBufferLength - Ignored
+	InputBufferLength - Ignored
+	IoControlCode - IOCTL_INTERNAL_USB_SUBMIT_URB
+Return Value:
+	NTSTATUS
+--*/
+{
+	WDF_USB_CONTROL_SETUP_PACKET setupPacket;
+	NTSTATUS status;
+	PUCHAR transferBuffer;
+	ULONG transferBufferLength, transferedLength = 0;
+	WDFDEVICE wdfDevice;
+	//PUSB_CONTEXT usbContext;
+	PIO_CONTEXT  ioContext;
+	//    ULONG lengthRead = 0;
+
+	UNREFERENCED_PARAMETER(Queue);
+	UNREFERENCED_PARAMETER(OutputBufferLength);
+	UNREFERENCED_PARAMETER(InputBufferLength);
+
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 0\n");
+
+	NT_VERIFY(IoControlCode == IOCTL_INTERNAL_USB_SUBMIT_URB);
+
+	wdfDevice = WdfIoQueueGetDevice(Queue);
+	//usbContext = WdfDeviceGetUsbContext(wdfDevice);
+	ioContext = WdfDeviceGetIoContext(wdfDevice);
+
+	status = UdecxUrbRetrieveBuffer(Request, &transferBuffer, &transferBufferLength);
+
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 1\n");
+
+	if (!NT_SUCCESS(status)) {
+
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 2\n");
+		//
+		// Could mean there is no buffer on the request
+		//
+		transferBuffer = NULL;
+		transferBufferLength = 0;
+		status = STATUS_SUCCESS;
+	}
+	//Initlize transferedLength and update it later to real length if it was changed.
+	transferedLength = transferBufferLength;
+	status = UdecxUrbRetrieveControlSetupPacket(Request, &setupPacket);
+
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 3\n");
+
+	if (!NT_SUCCESS(status)) {
+
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 4\n");
+		LogError(TRACE_DEVICE, "WdfRequest %p is not a control URB? UdecxUrbRetrieveControlSetupPacket %!STATUS!",
+			Request, status);
+		UdecxUrbCompleteWithNtStatus(Request, status);
+		goto exit;
+	}
+
+	if (setupPacket.Packet.bm.Request.Recipient != BmRequestToInterface ||
+		setupPacket.Packet.bm.Request.Type != BmRequestClass)
+	{
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 5\n");
+		status = STATUS_INVALID_DEVICE_REQUEST;
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "Unrecognized control request 0x%02x 0x%02x wValue: 0x%04x wIndex: 0x%04x "
+			"wLength: 0x%04x %!STATUS!\n", setupPacket.Packet.bm.Byte,
+			setupPacket.Packet.bRequest, setupPacket.Packet.wValue.Value,
+			setupPacket.Packet.wIndex.Value, setupPacket.Packet.wLength, status);
+		LogError(TRACE_DEVICE, "Unrecognized control request 0x%02x 0x%02x wValue: 0x%04x wIndex: 0x%04x "
+			"wLength: 0x%04x %!STATUS!", setupPacket.Packet.bm.Byte,
+			setupPacket.Packet.bRequest, setupPacket.Packet.wValue.Value,
+			setupPacket.Packet.wIndex.Value, setupPacket.Packet.wLength, status);
+		goto exit;
+	}
+	else if (setupPacket.Packet.wIndex.Value != USB_DEFAULT_ENDPOINT_ADDRESS)
+	{
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 6\n");
+		status = STATUS_INVALID_DEVICE_REQUEST;
+		LogError(TRACE_DEVICE, "Unrecognized control request whose wIndex (0x%x) is not g_CommunicationInterfaceIndex (0x%x) "
+			, setupPacket.Packet.wIndex.Value, USB_DEFAULT_ENDPOINT_ADDRESS);
+		goto exit;
+	}
+
+	if (setupPacket.Packet.bm.Request.Dir == BmRequestDeviceToHost)
+	{
+		/*
+		switch (setupPacket.Packet.bRequest)
+		{
+		case GET_NTB_PARAMETERS:
+			status = GetNtbParameters(transferBuffer, transferBufferLength, &transferedLength);
+			break;
+		case GET_ENCAPSULATE_RESPONSE:
+			status = GetEncapsulatedCommand(ioContext, setupPacket.Packet.wValue.Value, transferBuffer, transferBufferLength, &transferedLength);
+			break;
+		default:
+			status = STATUS_INVALID_DEVICE_REQUEST;
+			LogError(TRACE_FLAG_Driver, "Unrecognized control request 0x%02x 0x%02x wValue: 0x%04x wIndex: 0x%04x "
+				"wLength: 0x%04x %!STATUS!", setupPacket.Packet.bm.Byte,
+				setupPacket.Packet.bRequest, setupPacket.Packet.wValue.Value,
+				setupPacket.Packet.wIndex.Value, setupPacket.Packet.wLength, status);
+			goto exit;
+		}
+		*/
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 7\n");
+		status = STATUS_SUCCESS;
+		goto exit;
+	}
+	else
+	{
+		/*
+		switch (setupPacket.Packet.bRequest)
+		{
+		case SEND_ENCAPSULATE_COMMAND:
+			status = SendEncapsulatedCommand(ioContext, setupPacket.Packet.wValue.Value, transferBuffer, transferBufferLength);
+			break;
+		case RESET_FUNCTION:
+			status = ResetAdapter();
+			break;
+		case SET_NTB_INPUT_SIZE:
+			status = SetNtbInputSize(usbContext, transferBuffer, transferBufferLength);
+			break;
+		case SET_NBT_FORMAT:
+			status = SetNtbFormat(usbContext, setupPacket.Packet.wValue.Value);
+			break;
+		default:
+			status = STATUS_INVALID_DEVICE_REQUEST;
+			LogError(TRACE_FLAG_Driver, "Unrecognized control request 0x%02x 0x%02x wValue: 0x%04x wIndex: 0x%04x "
+				"wLength: 0x%04x %!STATUS!", setupPacket.Packet.bm.Byte,
+				setupPacket.Packet.bRequest, setupPacket.Packet.wValue.Value,
+				setupPacket.Packet.wIndex.Value, setupPacket.Packet.wLength, status);
+			goto exit;
+		}
+		*/
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 8\n");
+		status = STATUS_SUCCESS;
+		goto exit;
+	}
+
+exit:
+	//CompleteURB(Request, transferedLength, status);
+	UdecxUrbCompleteWithNtStatus(Request, STATUS_SUCCESS);
+	return;
 }
 
 
@@ -243,15 +404,12 @@ IoEvtBulkOutUrb1(
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkOutUrb - transferBufferLength: %lu\n", transferBufferLength);
 
 	hexdump(transferBuffer, transferBufferLength);
-	if (transferBufferLength >= 8) {
-		// Print out the HostCmd
-	}
 
 	if (transferBufferLength >= 8) {
 		PrintMwifiexCmd(transferBuffer);
 	}
 
-	memset(transferBuffer, 0x00, transferBufferLength);
+	//memset(transferBuffer, 0x00, transferBufferLength);
 
 	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Bulk Out - transferBufferLength: %lu\n", transferBufferLength);
 
@@ -262,11 +420,13 @@ IoEvtBulkOutUrb1(
 		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Firmware Download Complete. Begin Mode Switch...\n");
 	}
 	*/
-
+	
 exit:
     // writes never pended, always completed
-    UdecxUrbSetBytesCompleted(Request, transferBufferLength);
-    UdecxUrbCompleteWithNtStatus(Request, status);
+    
+	UdecxUrbComplete(Request, USBD_STATUS_SUCCESS);
+	//UdecxUrbSetBytesCompleted(Request, transferBufferLength);
+    //UdecxUrbCompleteWithNtStatus(Request, status);
     return;
 }
 
@@ -469,6 +629,7 @@ IoEvtBulkInUrb81(
 
 	if (IoControlCode != IOCTL_INTERNAL_USB_SUBMIT_URB)
 	{
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81 - Incorrect IOCTL\n");
 		LogError(TRACE_DEVICE, "WdfRequest BIN %p Incorrect IOCTL %x, %!STATUS!",
 			Request, IoControlCode, status);
 		status = STATUS_INVALID_PARAMETER;
@@ -476,14 +637,34 @@ IoEvtBulkInUrb81(
 	}
 
 	status = UdecxUrbRetrieveBuffer(Request, &transferBuffer, &transferBufferLength);
+	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkInUrb81 - transferBufferLength: %lu\n", transferBufferLength);
+
 	if (!NT_SUCCESS(status))
 	{
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81 - Retrieve buffer error\n");
 		LogError(TRACE_DEVICE, "WdfRequest BIN %p unable to retrieve buffer %!STATUS!",
 			Request, status);
 		goto exit;
 	}
 
 	memset(transferBuffer, 0x00, transferBufferLength);
+	transferBuffer[0] = 0xce;
+	transferBuffer[1] = 0xfa;
+	transferBuffer[2] = 0x0d;
+	transferBuffer[3] = 0xf0;
+	transferBuffer[4] = 0xa9;
+	transferBuffer[5] = 0x80;
+	transferBuffer[6] = 0x08;
+	transferBuffer[7] = 0x00;
+	transferBuffer[8] = 0x01;
+	transferBuffer[9] = 0x00;
+	transferBuffer[10] = 0x00;
+	transferBuffer[11] = 0x00;
+
+	hexdump(transferBuffer, transferBufferLength);
+
+	UdecxUrbSetBytesCompleted(Request, (ULONG)12);
+	UdecxUrbCompleteWithNtStatus(Request, status);
 
 exit:
 	return;
@@ -499,8 +680,8 @@ IoEvtBulkInUrb82(
 )
 {
 	NTSTATUS status = STATUS_SUCCESS;
-	WDFDEVICE backchannel;
-	PUDECX_BACKCHANNEL_CONTEXT pBackChannelContext;
+	//WDFDEVICE backchannel;
+	//PUDECX_BACKCHANNEL_CONTEXT pBackChannelContext;
 	PENDPOINTQUEUE_CONTEXT pEpQContext;
 	//BOOLEAN bReady = FALSE;
 	PUCHAR transferBuffer;
@@ -510,27 +691,38 @@ IoEvtBulkInUrb82(
 	UNREFERENCED_PARAMETER(OutputBufferLength);
 	UNREFERENCED_PARAMETER(InputBufferLength);
 
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb82 - 0\n");
 
 	pEpQContext = GetEndpointQueueContext(Queue);
-	backchannel = pEpQContext->backChannelDevice;
-	pBackChannelContext = GetBackChannelContext(backchannel);
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb82 - 0.5\n");
+	//backchannel = pEpQContext->backChannelDevice;
+	//pBackChannelContext = GetBackChannelContext(backchannel);
 
 	if (IoControlCode != IOCTL_INTERNAL_USB_SUBMIT_URB)
 	{
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb82 - Incorrect IOCTL\n");
 		LogError(TRACE_DEVICE, "WdfRequest BIN %p Incorrect IOCTL %x, %!STATUS!",
 			Request, IoControlCode, status);
 		status = STATUS_INVALID_PARAMETER;
 		goto exit;
 	}
-
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb82 - 1\n");
 	status = UdecxUrbRetrieveBuffer(Request, &transferBuffer, &transferBufferLength);
+	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkInUrb82 - transferBufferLength: %lu\n", transferBufferLength);
+
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb82 - transferBufferLength: %lu\n", transferBufferLength);
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb82 - 2\n");
+
 	if (!NT_SUCCESS(status))
 	{
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb82 - Retrieve buffer error\n");
 		LogError(TRACE_DEVICE, "WdfRequest BIN %p unable to retrieve buffer %!STATUS!",
 			Request, status);
 		goto exit;
 	}
+
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb82 - 3\n");
+	//hexdump(transferBuffer, transferBufferLength);
 
 	memset(transferBuffer, 0x00, transferBufferLength);
 
