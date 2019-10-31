@@ -1,5 +1,6 @@
 #pragma once
 
+void* GetPayload(char command0);
 void PrintMwifiexCmd(void* command);
 
 typedef struct _HostCmd {

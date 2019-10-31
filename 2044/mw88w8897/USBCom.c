@@ -232,8 +232,6 @@ Return Value:
 	UNREFERENCED_PARAMETER(OutputBufferLength);
 	UNREFERENCED_PARAMETER(InputBufferLength);
 
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 0\n");
-
 	NT_VERIFY(IoControlCode == IOCTL_INTERNAL_USB_SUBMIT_URB);
 
 	wdfDevice = WdfIoQueueGetDevice(Queue);
@@ -242,11 +240,8 @@ Return Value:
 
 	status = UdecxUrbRetrieveBuffer(Request, &transferBuffer, &transferBufferLength);
 
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 1\n");
-
 	if (!NT_SUCCESS(status)) {
 
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 2\n");
 		//
 		// Could mean there is no buffer on the request
 		//
@@ -258,11 +253,8 @@ Return Value:
 	transferedLength = transferBufferLength;
 	status = UdecxUrbRetrieveControlSetupPacket(Request, &setupPacket);
 
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 3\n");
-
 	if (!NT_SUCCESS(status)) {
 
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 4\n");
 		LogError(TRACE_DEVICE, "WdfRequest %p is not a control URB? UdecxUrbRetrieveControlSetupPacket %!STATUS!",
 			Request, status);
 		UdecxUrbCompleteWithNtStatus(Request, status);
@@ -272,7 +264,6 @@ Return Value:
 	if (setupPacket.Packet.bm.Request.Recipient != BmRequestToInterface ||
 		setupPacket.Packet.bm.Request.Type != BmRequestClass)
 	{
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtControlUrb - 5\n");
 		status = STATUS_INVALID_DEVICE_REQUEST;
 		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "Unrecognized control request 0x%02x 0x%02x wValue: 0x%04x wIndex: 0x%04x "
 			"wLength: 0x%04x %!STATUS!\n", setupPacket.Packet.bm.Byte,
@@ -430,7 +421,6 @@ IoEvtBulkOutUrb1(
 	}
 	*/
 	requestToComplete = pBackChannelContext->pendedRequest;
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - Got request: %p\n", requestToComplete);
 
 	// Get that request's transfer buffer
 	status = UdecxUrbRetrieveBuffer(requestToComplete, &transferBufferToComplete, &transferBufferLengthToComplete);
@@ -446,50 +436,47 @@ IoEvtBulkOutUrb1(
 	// Direction
 	transferBufferToComplete[5] = 0x80;
 
+	// TODO_rc1: Feed in a payload from kAFL
+	// The payload will be fed in via IOCTL at some earlier point
+	// In a queue of sorts, the data will be popped off (or rather pointer moved) for each byte that is consumed by a command
+	// We can use up to 2mb of data by default -- otherwise kAFL will have to be modified
+
+
+	// Check if there is an available payload
+	
+	void* payload = GetPayload(transferBufferToComplete[4]);
+
+	if (payload == NULL) {
+		// Poor man's fuzzer
+		LARGE_INTEGER p = KeQueryPerformanceCounter(NULL);
+		ULONG seed = p.LowPart ^ (ULONG)p.HighPart;
+
+		for (ULONG i = 12; i < transferBufferLength; i++) {
+			transferBufferToComplete[i] = (UCHAR)RtlRandom(&seed);
+		}
+	}
+	else {
+		RtlCopyMemory(transferBufferToComplete, payload, transferBufferLength);
+	}
+	/*
+	for (ULONG i = 12; i < transferBufferLength; i++) {
+		if (i % 2 == 0) {
+			transferBufferToComplete[i] = 0xDE;
+		}
+		else {
+			transferBufferToComplete[i] = 0xAD;
+		}
+	}
+	*/
+
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Randomized Response\n");
+	hexdump(transferBufferToComplete, transferBufferLength);
+
 	UdecxUrbSetBytesCompleted(Request, transferBufferLength);
 	UdecxUrbCompleteWithNtStatus(Request, status);
 
 	UdecxUrbSetBytesCompleted(requestToComplete, transferBufferLength);
 	UdecxUrbCompleteWithNtStatus(requestToComplete, status);
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - Completed corresponding IoEvtBulkInUrb81\n");
-
-	/*
-	// try to get us information about a request that may be waiting for this info
-	status = WRQueuePushWrite(
-		&(pBackChannelContext->missionRequest),
-		transferBuffer,
-		transferBufferLength,
-		&matchingRead);
-
-	if (matchingRead != NULL)
-	{
-		PVOID rbuffer;
-		SIZE_T rlen;
-
-		// this is a back-channel read, not a USB read!
-		status = WdfRequestRetrieveOutputBuffer(matchingRead, 1, &rbuffer, &rlen);
-
-		if (!NT_SUCCESS(status)) {
-
-			LogError(TRACE_DEVICE, "WdfRequest %p cannot retrieve mission completion buffer %!STATUS!",
-				matchingRead, status);
-
-		}
-		else {
-			completeBytes = MINLEN(rlen, transferBufferLength);
-			memcpy(rbuffer, transferBuffer, completeBytes);
-		}
-
-		WdfRequestCompleteWithInformation(matchingRead, status, completeBytes);
-
-		LogInfo(TRACE_DEVICE, "Mission request %p completed with matching read %p", Request, matchingRead);
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - Mission request %p completed with matching read %p\n", Request, matchingRead);
-	}
-	else {
-		LogInfo(TRACE_DEVICE, "Mission request %p enqueued", Request);
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - Mission request %p enqueued\n", Request);
-	}
-	*/
 
 
 exit:
@@ -710,35 +697,6 @@ IoEvtBulkInUrb81(
 			Request, status);
 		goto exit;
 	}
-
-	/*
-	transferBuffer[0] = 0xce;
-	transferBuffer[1] = 0xfa;
-	transferBuffer[2] = 0x0d;
-	transferBuffer[3] = 0xf0;
-	transferBuffer[4] = 0x00;
-	transferBuffer[5] = 0x00;
-	transferBuffer[6] = 0x00;
-	transferBuffer[7] = 0x00;
-	UdecxUrbSetBytesCompleted(Request, (ULONG)transferBufferLength);
-	UdecxUrbCompleteWithNtStatus(Request, STATUS_SUCCESS);
-	LogInfo(TRACE_DEVICE, "Mission response %p pended", Request);
-	*/
-
-	// Always pend -- we must wait for a Bulk out to request some data
-	//status = WdfRequestRequeue(Request);
-	//status = WdfRequestUnmarkCancelable(Request);
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81 - WdfRequestUnmarkCancelable: %d\n", status);
-
-	/*
-	status = WdfRequestForwardToIoQueue(Request, pBackChannelContext->missionCompletion.ReadBufferQueue);
-	if (!NT_SUCCESS(status))
-	{
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81 - Requeue error: %d\n", status);
-	}
-	//UdecxUrbCompleteWithNtStatus(Request, STATUS_PENDING);
-	*/
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81 - Bulk IN %p pended\n", Request);
 
 	pBackChannelContext->pendedRequest = Request;
 

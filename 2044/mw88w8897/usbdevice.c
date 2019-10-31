@@ -975,65 +975,19 @@ Usb_ReadDescriptorsAndPlugIn(
 		goto exit;
 	}
 
-
-	// Why is this here? cmd should be 0?
-	/*
-	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-		0x81,
-		&(deviceContext->MWIFIEXRxCmdEndpoint));
-
-	if (!NT_SUCCESS(status)) {
-
-		goto exit;
-	}
-	*/
-
-    //
-    // Create static endpoints.
-    //
-	/*
-    status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-        USB_DEFAULT_ENDPOINT_ADDRESS,
-        &(deviceContext->MWIFIEXControlEndpoint) );
-
-    if (!NT_SUCCESS(status)) {
-
-        goto exit;
-    }
-
-    status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-        g_BulkOutEndpointAddress, 
-        &(deviceContext->MWIFIEXBulkOutEndpoint) );
-
-    if (!NT_SUCCESS(status)) {
-
-        goto exit;
-    }
-
-    status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-        g_BulkInEndpointAddress,
-        &(deviceContext->MWIFIEXBulkInEndpoint));
-
-    if (!NT_SUCCESS(status)) {
-
-        goto exit;
-    }
-
-    status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-        g_InterruptEndpointAddress,
-        &(deviceContext->MWIFIEXInterruptInEndpoint));
-
-    if (!NT_SUCCESS(status)) {
-
-        goto exit;
-    }
-	*/
     //
     // This begins USB communication and prevents us from modifying descriptors and simple endpoints.
     //
     UDECX_USB_DEVICE_PLUG_IN_OPTIONS_INIT(&pluginOptions);
     pluginOptions.Usb20PortNumber = 1;
     status = UdecxUsbDevicePlugIn(controllerContext->ChildDevice, &pluginOptions);
+
+	// TODO_rc1
+	// Pause here long enough for the mwlu97w8x64.sys driver to load
+	// We need to get the address range of this driver
+	// This will be problematic if we let the USB URB timeout
+	// Preloading the driver is the best way to go if we could make that work be connecting the 2043 first
+	// AFTER this happens is when we need to load in kAFL payload data
 
 
     LogInfo(TRACE_DEVICE, "Usb_ReadDescriptorsAndPlugIn ends successfully");
