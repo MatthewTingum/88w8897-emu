@@ -44,6 +44,7 @@ typedef struct _UDECX_USBCONTROLLER_CONTEXT {
     WDFQUEUE DefaultQueue;
     WRITE_BUFFER_TO_READ_REQUEST_QUEUE missionRequest;
     WRITE_BUFFER_TO_READ_REQUEST_QUEUE missionCompletion;
+	WDFREQUEST	   pendedRequest;
 
     PUDECXUSBDEVICE_INIT  ChildDeviceInit;
     UDECXUSBDEVICE        ChildDevice;

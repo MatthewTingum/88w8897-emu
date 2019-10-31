@@ -360,48 +360,57 @@ static int _Test_rebound = 0;
 
 static VOID
 IoEvtBulkOutUrb1(
-    _In_ WDFQUEUE Queue,
-    _In_ WDFREQUEST Request,
-    _In_ size_t OutputBufferLength,
-    _In_ size_t InputBufferLength,
-    _In_ ULONG IoControlCode
+	_In_ WDFQUEUE Queue,
+	_In_ WDFREQUEST Request,
+	_In_ size_t OutputBufferLength,
+	_In_ size_t InputBufferLength,
+	_In_ ULONG IoControlCode
 )
 {
-	//DbgPrint("[MWIFIEX] IoEvtBulkOutUrb\n");
+	UDECXUSBDEVICE device;
+	WDFQUEUE* pQueueRecord = NULL;
+	PIO_CONTEXT pIoContext;
+	WDFREQUEST requestToComplete;
+	PUCHAR transferBufferToComplete;
+	ULONG transferBufferLengthToComplete = 0;
+
+	//WDFREQUEST matchingRead;
+	WDFDEVICE backchannel;
+	PUDECX_BACKCHANNEL_CONTEXT pBackChannelContext;
+	PENDPOINTQUEUE_CONTEXT pEpQContext;
+	NTSTATUS status = STATUS_SUCCESS;
+	PUCHAR transferBuffer;
+	ULONG transferBufferLength = 0;
+	//SIZE_T completeBytes = 0;
+
+	UNREFERENCED_PARAMETER(OutputBufferLength);
+	UNREFERENCED_PARAMETER(InputBufferLength);
+
 	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1\n");
-	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkOutUrb");
-    //WDFREQUEST matchingRead;
-    WDFDEVICE backchannel;
-    PUDECX_BACKCHANNEL_CONTEXT pBackChannelContext;
-    PENDPOINTQUEUE_CONTEXT pEpQContext;
-    NTSTATUS status = STATUS_SUCCESS;
-    PUCHAR transferBuffer;
-    ULONG transferBufferLength = 0;
-    //SIZE_T completeBytes = 0;
 
-    UNREFERENCED_PARAMETER(OutputBufferLength);
-    UNREFERENCED_PARAMETER(InputBufferLength);
+	pEpQContext = GetEndpointQueueContext(Queue);
+	backchannel = pEpQContext->backChannelDevice;
+	pBackChannelContext = GetBackChannelContext(backchannel);
 
-    pEpQContext = GetEndpointQueueContext(Queue);
-    backchannel = pEpQContext->backChannelDevice;
-    pBackChannelContext = GetBackChannelContext(backchannel);
+	device = pEpQContext->usbDeviceObj;
+	pIoContext = WdfDeviceGetIoContext(device);
+	pQueueRecord = &(pIoContext->BulkInQueue81);
 
-    if (IoControlCode != IOCTL_INTERNAL_USB_SUBMIT_URB)
-    {
-        LogError(TRACE_DEVICE, "WdfRequest BOUT %p Incorrect IOCTL %x, %!STATUS!",
-            Request, IoControlCode, status);
-        status = STATUS_INVALID_PARAMETER;
-        goto exit;
-    }
+	if (IoControlCode != IOCTL_INTERNAL_USB_SUBMIT_URB)
+	{
+		LogError(TRACE_DEVICE, "WdfRequest BOUT %p Incorrect IOCTL %x, %!STATUS!",
+			Request, IoControlCode, status);
+		status = STATUS_INVALID_PARAMETER;
+		goto exit;
+	}
 
-    status = UdecxUrbRetrieveBuffer(Request, &transferBuffer, &transferBufferLength);
-    if (!NT_SUCCESS(status))
-    {
-        LogError(TRACE_DEVICE, "WdfRequest BOUT %p unable to retrieve buffer %!STATUS!",
-            Request, status);
-        goto exit;
-    }
-	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkOutUrb - transferBufferLength: %lu\n", transferBufferLength);
+	status = UdecxUrbRetrieveBuffer(Request, &transferBuffer, &transferBufferLength);
+	if (!NT_SUCCESS(status))
+	{
+		LogError(TRACE_DEVICE, "WdfRequest BOUT %p unable to retrieve buffer %!STATUS!",
+			Request, status);
+		goto exit;
+	}
 
 	hexdump(transferBuffer, transferBufferLength);
 
@@ -409,25 +418,84 @@ IoEvtBulkOutUrb1(
 		PrintMwifiexCmd(transferBuffer);
 	}
 
-	//memset(transferBuffer, 0x00, transferBufferLength);
-
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Bulk Out - transferBufferLength: %lu\n", transferBufferLength);
-
-
-	// END Firmware continued
+	// Get a Bulk IN request to complete
 	/*
-	if (transferBufferLength == 20) {
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Firmware Download Complete. Begin Mode Switch...\n");
+	status = WdfIoQueueRetrieveNextRequest(pBackChannelContext->missionRequest.ReadBufferQueue, &requestToComplete);
+	if (!NT_SUCCESS(status))
+	{
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - Unable to find a pended request: %d\n", status);
+		LogError(TRACE_DEVICE, "WdfRequest BOUT %p unable to retrieve buffer %!STATUS!",
+			Request, status);
+		goto exit;
 	}
 	*/
-	
+	requestToComplete = pBackChannelContext->pendedRequest;
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - Got request: %p\n", requestToComplete);
+
+	// Get that request's transfer buffer
+	status = UdecxUrbRetrieveBuffer(requestToComplete, &transferBufferToComplete, &transferBufferLengthToComplete);
+	if (!NT_SUCCESS(status))
+	{
+		LogError(TRACE_DEVICE, "WdfRequest BIN %p unable to retrieve buffer %!STATUS!",
+			Request, status);
+		goto exit;
+	}
+
+	// Copy the MwifiexCmd
+	RtlCopyMemory(transferBufferToComplete, transferBuffer, transferBufferLength);
+	// Direction
+	transferBufferToComplete[5] = 0x80;
+
+	UdecxUrbSetBytesCompleted(Request, transferBufferLength);
+	UdecxUrbCompleteWithNtStatus(Request, status);
+
+	UdecxUrbSetBytesCompleted(requestToComplete, transferBufferLength);
+	UdecxUrbCompleteWithNtStatus(requestToComplete, status);
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - Completed corresponding IoEvtBulkInUrb81\n");
+
+	/*
+	// try to get us information about a request that may be waiting for this info
+	status = WRQueuePushWrite(
+		&(pBackChannelContext->missionRequest),
+		transferBuffer,
+		transferBufferLength,
+		&matchingRead);
+
+	if (matchingRead != NULL)
+	{
+		PVOID rbuffer;
+		SIZE_T rlen;
+
+		// this is a back-channel read, not a USB read!
+		status = WdfRequestRetrieveOutputBuffer(matchingRead, 1, &rbuffer, &rlen);
+
+		if (!NT_SUCCESS(status)) {
+
+			LogError(TRACE_DEVICE, "WdfRequest %p cannot retrieve mission completion buffer %!STATUS!",
+				matchingRead, status);
+
+		}
+		else {
+			completeBytes = MINLEN(rlen, transferBufferLength);
+			memcpy(rbuffer, transferBuffer, completeBytes);
+		}
+
+		WdfRequestCompleteWithInformation(matchingRead, status, completeBytes);
+
+		LogInfo(TRACE_DEVICE, "Mission request %p completed with matching read %p", Request, matchingRead);
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - Mission request %p completed with matching read %p\n", Request, matchingRead);
+	}
+	else {
+		LogInfo(TRACE_DEVICE, "Mission request %p enqueued", Request);
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - Mission request %p enqueued\n", Request);
+	}
+	*/
+
+
 exit:
-    // writes never pended, always completed
-    
-	UdecxUrbComplete(Request, USBD_STATUS_SUCCESS);
-	//UdecxUrbSetBytesCompleted(Request, transferBufferLength);
-    //UdecxUrbCompleteWithNtStatus(Request, status);
-    return;
+	// writes never pended, always completed
+	
+	return;
 }
 
 static VOID
@@ -629,7 +697,6 @@ IoEvtBulkInUrb81(
 
 	if (IoControlCode != IOCTL_INTERNAL_USB_SUBMIT_URB)
 	{
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81 - Incorrect IOCTL\n");
 		LogError(TRACE_DEVICE, "WdfRequest BIN %p Incorrect IOCTL %x, %!STATUS!",
 			Request, IoControlCode, status);
 		status = STATUS_INVALID_PARAMETER;
@@ -637,34 +704,43 @@ IoEvtBulkInUrb81(
 	}
 
 	status = UdecxUrbRetrieveBuffer(Request, &transferBuffer, &transferBufferLength);
-	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkInUrb81 - transferBufferLength: %lu\n", transferBufferLength);
-
 	if (!NT_SUCCESS(status))
 	{
-		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81 - Retrieve buffer error\n");
 		LogError(TRACE_DEVICE, "WdfRequest BIN %p unable to retrieve buffer %!STATUS!",
 			Request, status);
 		goto exit;
 	}
 
-	memset(transferBuffer, 0x00, transferBufferLength);
+	/*
 	transferBuffer[0] = 0xce;
 	transferBuffer[1] = 0xfa;
 	transferBuffer[2] = 0x0d;
 	transferBuffer[3] = 0xf0;
-	transferBuffer[4] = 0xa9;
-	transferBuffer[5] = 0x80;
-	transferBuffer[6] = 0x08;
+	transferBuffer[4] = 0x00;
+	transferBuffer[5] = 0x00;
+	transferBuffer[6] = 0x00;
 	transferBuffer[7] = 0x00;
-	transferBuffer[8] = 0x01;
-	transferBuffer[9] = 0x00;
-	transferBuffer[10] = 0x00;
-	transferBuffer[11] = 0x00;
+	UdecxUrbSetBytesCompleted(Request, (ULONG)transferBufferLength);
+	UdecxUrbCompleteWithNtStatus(Request, STATUS_SUCCESS);
+	LogInfo(TRACE_DEVICE, "Mission response %p pended", Request);
+	*/
 
-	hexdump(transferBuffer, transferBufferLength);
+	// Always pend -- we must wait for a Bulk out to request some data
+	//status = WdfRequestRequeue(Request);
+	//status = WdfRequestUnmarkCancelable(Request);
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81 - WdfRequestUnmarkCancelable: %d\n", status);
 
-	UdecxUrbSetBytesCompleted(Request, (ULONG)12);
-	UdecxUrbCompleteWithNtStatus(Request, status);
+	/*
+	status = WdfRequestForwardToIoQueue(Request, pBackChannelContext->missionCompletion.ReadBufferQueue);
+	if (!NT_SUCCESS(status))
+	{
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81 - Requeue error: %d\n", status);
+	}
+	//UdecxUrbCompleteWithNtStatus(Request, STATUS_PENDING);
+	*/
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkInUrb81 - Bulk IN %p pended\n", Request);
+
+	pBackChannelContext->pendedRequest = Request;
 
 exit:
 	return;
@@ -1170,6 +1246,16 @@ Io_DeviceWokeUp(
     return STATUS_SUCCESS;
 }
 
+void EvtWdfIoQueueIoCanceledOnQueue(
+	WDFQUEUE Queue,
+	WDFREQUEST Request
+)
+{
+	UNREFERENCED_PARAMETER(Queue);
+	UNREFERENCED_PARAMETER(Request);
+
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] EvtWdfIoQueueIoCanceledOnQueue\n");
+}
 
 NTSTATUS
 Io_RetrieveEpQueue(
@@ -1189,6 +1275,7 @@ Io_RetrieveEpQueue(
     WDFQUEUE *pQueueRecord = NULL;
     WDF_OBJECT_ATTRIBUTES  attributes;
     PFN_WDF_IO_QUEUE_IO_INTERNAL_DEVICE_CONTROL pIoCallback = NULL;
+	EVT_WDF_IO_QUEUE_IO_CANCELED_ON_QUEUE* pEvtWdfIoQueueIoCanceledOnQueue = NULL;
 
     status = STATUS_SUCCESS;
     pIoContext = WdfDeviceGetIoContext(Device);
@@ -1227,6 +1314,7 @@ Io_RetrieveEpQueue(
     case g_BulkInEndpointAddress81:
         pQueueRecord = &(pIoContext->BulkInQueue81);
         pIoCallback = IoEvtBulkInUrb81;
+		pEvtWdfIoQueueIoCanceledOnQueue = EvtWdfIoQueueIoCanceledOnQueue;
         break;
 
 	case g_BulkInEndpointAddress82:
@@ -1273,6 +1361,11 @@ Io_RetrieveEpQueue(
 
         //Sequential must specify this callback
         queueConfig.EvtIoInternalDeviceControl = pIoCallback;
+
+		if (pEvtWdfIoQueueIoCanceledOnQueue != NULL) {
+			queueConfig.EvtIoCanceledOnQueue = pEvtWdfIoQueueIoCanceledOnQueue;
+		}
+		
         WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&attributes, ENDPOINTQUEUE_CONTEXT);
 
         status = WdfIoQueueCreate(wdfController,

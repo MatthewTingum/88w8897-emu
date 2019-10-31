@@ -24,7 +24,7 @@ _WQQCancelRequest(
     IN WDFREQUEST  Request
 )
 {
-	DbgPrint("[MWIFIEX] _WQQCancelRequest\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] _WQQCancelRequest\n");
     UNREFERENCED_PARAMETER(Queue);
     WdfRequestComplete(Request, STATUS_CANCELLED);
 }
@@ -36,7 +36,7 @@ _WQQCancelUSBRequest(
     IN WDFREQUEST  Request
 )
 {
-	DbgPrint("[MWIFIEX] _WQQCancelUSBRequest\n");
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] _WQQCancelUSBRequest\n");
     UNREFERENCED_PARAMETER(Queue);
     LogInfo(TRACE_DEVICE, "Canceling request %p", Request);
     UdecxUrbCompleteWithNtStatus(Request, STATUS_CANCELLED);
