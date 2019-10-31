@@ -80,146 +80,23 @@ const UCHAR g_UsbConfigDescriptorSet[] =
         0xFF,                                     // bInterfaceProtocol
         0x00,                                     // iInterface
 
-		// Interrupt IN endpoint descriptor
+		// Bulk IN
 		0x07,                           // Descriptor size 
 		USB_ENDPOINT_DESCRIPTOR_TYPE,   // Descriptor type
-		0x01,     // Endpoint address and description
-		USB_ENDPOINT_TYPE_BULK,    // bmAttributes - interrupt
-		0x00, 0x02,                      // Max packet size = 512
-		0x00,                            // Servicing interval for interrupt (1ms/1 frame)
+		g_BulkOutEndpointAddress,		// Endpoint address and description
+		USB_ENDPOINT_TYPE_BULK,			// bmAttributes - interrupt
+		0x00, 0x02,                     // Max packet size = 512
+		0x00,                           // Servicing interval for interrupt (1ms/1 frame)
 
-		// Rx CMD/EVT Endpoint descriptor
+		// Bulk OUT
 		0x07,                           // Descriptor size
 		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-		0x81,       // bEndpointAddress
+		g_BulkInEndpointAddress,		// bEndpointAddress
 		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
 		0x00, 0x2,                      // wMaxPacketSize
 		0x00,                           // bInterval
 
 		
-		/*
-		// Bulk In Endpoint descriptor
-		0x07,                           // Descriptor size
-		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-		0x82,       // bEndpointAddress
-		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-		0x00, 0x2,                      // wMaxPacketSize
-		0x00,                           // bInterval
-
-		// Bulk Out Endpoint descriptor
-		0x07,                           // Descriptor size
-		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-		g_BulkOutEndpointAddress,       // bEndpointAddress
-		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-		0x00, 0x2,                      // wMaxPacketSize
-		0x00,                           // bInterval
-
-		// Bulk Out Channel 2 Endpoint descriptor
-		0x07,                           // Descriptor size
-		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-		0x03,       // bEndpointAddress
-		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-		0x00, 0x2,                      // wMaxPacketSize
-		0x00,                           // bInterval
-
-		
-
-		/*
-        // Bulk Out Endpoint descriptor
-        0x07,                           // Descriptor size
-        USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-        g_BulkOutEndpointAddress,       // bEndpointAddress
-        USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-        0x00, 0x2,                      // wMaxPacketSize
-        0x00,                           // bInterval
-
-        // Bulk IN endpoint descriptor
-        0x07,                           // Descriptor size 
-        USB_ENDPOINT_DESCRIPTOR_TYPE,   // Descriptor type
-        g_BulkInEndpointAddress,        // Endpoint address and description
-        USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-        0x00, 0x02,                     // Max packet size
-        0x00,                           // Servicing interval for data transfers : NA for bulk
-
-        // Interrupt IN endpoint descriptor
-        0x07,                           // Descriptor size 
-        USB_ENDPOINT_DESCRIPTOR_TYPE,   // Descriptor type
-        g_InterruptEndpointAddress,     // Endpoint address and description
-        USB_ENDPOINT_TYPE_INTERRUPT,    // bmAttributes - interrupt
-        0x40, 0x0,                      // Max packet size = 64
-        0x01                            // Servicing interval for interrupt (1ms/1 frame)
-		*/
-};
-
-// PID 0x2044 descriptors
-const UCHAR g_UsbDeviceDescriptor2[18] =
-{
-	0x12,                            // Descriptor size
-	USB_DEVICE_DESCRIPTOR_TYPE,      // Device descriptor type
-	0x00, 0x02,                      // USB 2.0
-	0xEF,                            // Device class (interface-class defined)
-	0x02,                            // Device subclass
-	0x01,                            // Device protocol
-	0x40,                            // Maxpacket size for EP0
-	MWIFIEX_DEVICE_VENDOR_ID,         // Vendor ID
-	MWIFIEX_DEVICE_PROD_ID2,           // Product ID
-	0x01,                            // LSB of firmware revision
-	0x32,                            // MSB of firmware revision
-	0x01,                            // Manufacture string index
-	0x02,                            // Product string index
-	0x03,                            // Serial number string index
-	0x01                             // Number of configurations
-};
-
-const UCHAR g_UsbConfigDescriptorSet2[] =
-{
-	// Configuration Descriptor Type
-	0x9,                              // Descriptor Size
-	USB_CONFIGURATION_DESCRIPTOR_TYPE, // Configuration Descriptor Type
-	0xE5, 0x00,                        // Length of this descriptor and all sub descriptors
-	0x03,                               // Number of interfaces	// 2 interfaces for the mwifiex card
-	0x01,                              // Configuration number
-	0x00,                              // Configuration string index
-	0xE0,                              // Config characteristics - bus powered
-	0xFA,                              // Max power consumption of device (in 2mA unit) : 500 mA
-
-		// IAD  descriptor
-		0x08,											// Descriptor size
-		USB_INTERFACE_ASSOCIATION_DESCRIPTOR_TYPE,      // Interface Association Descriptor Type
-		0x00,											// bFirstInterface
-		0x02,											// bInterfaceCount
-		0xE0,											// bFunctionClass
-		0x01,											// bFunctionSubClass
-		0x01,											// bFunctionProtocol
-		0x00,											// iFunction
-
-		// Interface  descriptor
-		0x9,										// Descriptor size
-		USB_INTERFACE_DESCRIPTOR_TYPE,				// Interface Association Descriptor Type
-		0x00,                                       // bInterfaceNumber
-		0x00,                                       // bAlternateSetting
-		0x03,                                       // bNumEndpoints
-		0xE0,										// bInterfaceClass
-		0x01,										// bInterfaceSubClass
-		0x01,										// bInterfaceProtocol
-		0x00,										// iInterface
-
-		// Interrupt IN endpoint descriptor
-		0x07,                           // Descriptor size 
-		USB_ENDPOINT_DESCRIPTOR_TYPE,   // Descriptor type
-		0x83,							// Endpoint address and description
-		USB_ENDPOINT_TYPE_INTERRUPT,			// bmAttributes - interrupt
-		0x00, 0x04,                     // Max packet size = 512
-		0x01,                           // Servicing interval for interrupt (1ms/1 frame)
-
-		// Bulk IN endpoint descriptor
-		0x07,                           // Descriptor size
-		USB_ENDPOINT_DESCRIPTOR_TYPE,   // bDescriptorType
-		0x84,							// bEndpointAddress
-		USB_ENDPOINT_TYPE_BULK,         // bmAttributes - bulk
-		0x00, 0x2,                      // wMaxPacketSize
-		0x00,							// bInterval
-
 };
 
 
@@ -464,9 +341,6 @@ Usb_ReadDescriptorsAndPlugIn(
 
     deviceContext->IsAwake = TRUE;  // for some strange reason, it starts out awake!
 
-	// We have different endpoints
-
-	// Keep this because I don't know what it does
 	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
 		USB_DEFAULT_ENDPOINT_ADDRESS,
 		&(deviceContext->MWIFIEXControlEndpoint));
@@ -476,7 +350,6 @@ Usb_ReadDescriptorsAndPlugIn(
 		goto exit;
 	}
 
-	// ENDPOINT 1/5 (BULK OUT 1)
 	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
 		g_BulkOutEndpointAddress,
 		&(deviceContext->MWIFIEXBulkOutEndpoint));
@@ -486,9 +359,8 @@ Usb_ReadDescriptorsAndPlugIn(
 		goto exit;
 	}
 
-	// ENDPOINT 2/5 (BULK IN)
 	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-		0x82,
+		g_BulkInEndpointAddress,
 		&(deviceContext->MWIFIEXBulkInEndpoint));
 
 	if (!NT_SUCCESS(status)) {
@@ -496,76 +368,6 @@ Usb_ReadDescriptorsAndPlugIn(
 		goto exit;
 	}
 
-	// ENDPOINT 3/5 (Interrupt)
-	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-		0x01,
-		&(deviceContext->MWIFIEXInterruptInEndpoint));
-
-	if (!NT_SUCCESS(status)) {
-
-		goto exit;
-	}
-
-	// ENDPOINT 4/5 (BULK OUT 2)
-	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-		0x03,
-		&(deviceContext->MWIFIEXBulkOut2Endpoint));
-
-	if (!NT_SUCCESS(status)) {
-
-		goto exit;
-	}
-
-	// ENDPOINT 5/5 (Interrupt)
-	status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-		0x81,
-		&(deviceContext->MWIFIEXRxCmdEndpoint));
-
-	if (!NT_SUCCESS(status)) {
-
-		goto exit;
-	}
-
-    //
-    // Create static endpoints.
-    //
-	/*
-    status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-        USB_DEFAULT_ENDPOINT_ADDRESS,
-        &(deviceContext->MWIFIEXControlEndpoint) );
-
-    if (!NT_SUCCESS(status)) {
-
-        goto exit;
-    }
-
-    status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-        g_BulkOutEndpointAddress, 
-        &(deviceContext->MWIFIEXBulkOutEndpoint) );
-
-    if (!NT_SUCCESS(status)) {
-
-        goto exit;
-    }
-
-    status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-        g_BulkInEndpointAddress,
-        &(deviceContext->MWIFIEXBulkInEndpoint));
-
-    if (!NT_SUCCESS(status)) {
-
-        goto exit;
-    }
-
-    status = UsbCreateEndpointObj(controllerContext->ChildDevice,
-        g_InterruptEndpointAddress,
-        &(deviceContext->MWIFIEXInterruptInEndpoint));
-
-    if (!NT_SUCCESS(status)) {
-
-        goto exit;
-    }
-	*/
     //
     // This begins USB communication and prevents us from modifying descriptors and simple endpoints.
     //

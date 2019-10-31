@@ -240,45 +240,17 @@ IoEvtBulkOutUrb(
     }
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkOutUrb - transferBufferLength: %lu\n", transferBufferLength);
 
-    // try to get us information about a request that may be waiting for this info
-	/* BEGONE
-    status = WRQueuePushWrite(
-        &(pBackChannelContext->missionRequest),
-        transferBuffer,
-        transferBufferLength,
-        &matchingRead);
-
-    if (matchingRead != NULL)
-    {
-        PVOID rbuffer;
-        SIZE_T rlen;
-
-        // this is a back-channel read, not a USB read!
-        status = WdfRequestRetrieveOutputBuffer(matchingRead, 1, &rbuffer, &rlen);
-
-        if (!NT_SUCCESS(status))  {
-
-            LogError(TRACE_DEVICE, "WdfRequest %p cannot retrieve mission completion buffer %!STATUS!",
-                matchingRead, status);
-
-        } else  {
-            completeBytes = MINLEN(rlen, transferBufferLength);
-            memcpy(rbuffer, transferBuffer, completeBytes);
-        }
-
-        WdfRequestCompleteWithInformation(matchingRead, status, completeBytes);
-
-        LogInfo(TRACE_DEVICE, "Mission request %p completed with matching read %p", Request, matchingRead);
-    } else {
-        LogInfo(TRACE_DEVICE, "Mission request %p enqueued", Request);
-    }
-
-	*/
-
 	// Mark the last Bulk IN as having a 'valid' CRC (We don't care)
 	//transferBuffer[0] = 0x00;
 	memset(transferBuffer, 0x00, transferBufferLength);
 	//WdfRequestCompleteWithInformation(Request, STATUS_SUCCESS, transferBufferLength);
+
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Bulk Out - transferBufferLength: %lu\n", transferBufferLength);
+
+	// END Firmware continued
+	if (transferBufferLength == 20) {
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] Firmware Download Complete. Begin Mode Switch...\n");
+	}
 
 exit:
     // writes never pended, always completed
@@ -339,30 +311,15 @@ IoEvtBulkInUrb(
 	LogInfo(TRACE_DEVICE, "[MWIFIEX] IoEvtBulkInUrb transferBufferLength: %lu", transferBufferLength);
 	//hexdump(transferBuffer, transferBufferLength);
 
-    // try to get us information about a request that may be waiting for this info
-	/*
-    status = WRQueuePullRead(
-        &(pBackChannelContext->missionCompletion),
-        Request,
-        transferBuffer,
-        transferBufferLength,
-        &bReady,
-        &completeBytes);
-
-    if (bReady)
-    {
-        UdecxUrbSetBytesCompleted(Request, (ULONG)completeBytes);
-        UdecxUrbCompleteWithNtStatus(Request, status);
-        LogInfo(TRACE_DEVICE, "Mission response %p completed with pre-existing data", Request);
-    } else {
-        LogInfo(TRACE_DEVICE, "Mission response %p pended", Request);
-    }
-	*/
 	// We have no mission, so don't let this pend (STATUS_SUCCESS)
 	UdecxUrbSetBytesCompleted(Request, (ULONG)transferBufferLength);
 	UdecxUrbCompleteWithNtStatus(Request, STATUS_SUCCESS);
 	LogInfo(TRACE_DEVICE, "Mission response %p completed with pre-existing data", Request);
 
+	if (transferBufferLength == 20) {
+		//UdecxUsbDevicePlugOutAndDelete();
+		//Usb_Disconnect();
+	}
 
 exit:
     return;
@@ -668,63 +625,21 @@ Io_RetrieveEpQueue(
 
     switch (EpAddr)
     {
-	// Interface 1: Default / CMD / Setup
+
     case USB_DEFAULT_ENDPOINT_ADDRESS:
         pQueueRecord = &(pIoContext->ControlQueue);
         pIoCallback = IoEvtControlUrb;
         break;
 
-		// USED (RxCMD)
-		// Interface 1: Bulk OUT
-	case 0x81:
+	case g_BulkInEndpointAddress:
 		pQueueRecord = &(pIoContext->BulkOutQueue);
 		pIoCallback = IoEvtBulkOutUrb;
 		break;
 
-	// USED (BULK OUT 1)
-    case g_BulkOutEndpointAddress:
-        pQueueRecord = &(pIoContext->BulkOutQueue);
-        pIoCallback = IoEvtBulkOutUrb;
-        break;
-
-	// Is this even legal???
-	// USED (BULK OUT 2)
-	case 0x03:
-		pQueueRecord = &(pIoContext->BulkOutQueue2);
-		pIoCallback = IoEvtBulkOutUrb;
-		break;
-
-		// USED (BULK IN)
-	case 0x82:
+	case g_BulkOutEndpointAddress:
 		pQueueRecord = &(pIoContext->BulkInQueue);
 		pIoCallback = IoEvtBulkInUrb;
 		break;
-
-	// Old news
-    case g_BulkInEndpointAddress:
-        pQueueRecord = &(pIoContext->BulkInQueue);
-        pIoCallback = IoEvtBulkInUrb;
-        break;
-
-	// USED (INTERRUPT)
-	// Interface 1: Bulk IN
-	case 0x01:
-		// TODO - BUGFIX - we purge the deferred interrupt queue later so we either need it here, or we should check if it's null later
-		pQueueRecord = &(pIoContext->BulkInQueue);
-		pIoCallback = IoEvtBulkInUrb;
-		/*
-		status = Io_CreateDeferredIntrQueue(wdfController, pIoContext);
-		pQueueRecord = &(pIoContext->InterruptUrbQueue);
-		pIoCallback = IoEvtInterruptInUrb;
-		*/
-		break;
-
-	// Old news
-    case g_InterruptEndpointAddress:
-        status = Io_CreateDeferredIntrQueue(wdfController, pIoContext);
-        pQueueRecord = &(pIoContext->InterruptUrbQueue);
-        pIoCallback = IoEvtInterruptInUrb;
-        break;
 
     default:
         LogError(TRACE_DEVICE, "Io_RetrieveEpQueue received unrecognized ep %x", EpAddr);
