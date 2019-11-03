@@ -28,21 +28,21 @@ typedef struct _ENDPOINTQUEUE_CONTEXT {
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(ENDPOINTQUEUE_CONTEXT, GetEndpointQueueContext);
 
-void hexdump(void *ptr, int buflen) {
-	unsigned char *buf = (unsigned char*)ptr;
+void hexdump(void* ptr, int buflen) {
+	unsigned char* buf = (unsigned char*)ptr;
 	int i, j;
 	for (i = 0; i < buflen; i += 16) {
-		DbgPrint("%06x: ", i);
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "%06x: ", i);
 		for (j = 0; j < 16; j++)
 			if (i + j < buflen)
-				DbgPrint("%02x ", buf[i + j]);
+				DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "%02x ", buf[i + j]);
 			else
-				DbgPrint("   ");
-		DbgPrint(" ");
+				DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "   ");
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, " ");
 		for (j = 0; j < 16; j++)
 			if (i + j < buflen)
-				DbgPrint("%c", isprint(buf[i + j]) ? buf[i + j] : '.');
-		DbgPrint("\n");
+				DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "%c", isprint(buf[i + j]) ? buf[i + j] : '.');
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "\n");
 	}
 }
 
@@ -317,8 +317,12 @@ IoEvtBulkInUrb(
 	LogInfo(TRACE_DEVICE, "Mission response %p completed with pre-existing data", Request);
 
 	if (transferBufferLength == 20) {
-		//UdecxUsbDevicePlugOutAndDelete();
+		//UdecxUsbDevicePlugOutAndDelete(pEpQContext->usbDeviceObj);
 		//Usb_Disconnect();
+	}
+
+	if (transferBufferLength < 200) {
+		hexdump(transferBuffer, transferBufferLength);
 	}
 
 exit:

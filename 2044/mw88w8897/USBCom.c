@@ -436,14 +436,47 @@ IoEvtBulkOutUrb1(
 	// Direction
 	transferBufferToComplete[5] = 0x80;
 
+	// Clear out extra data for testing
+	memset(transferBufferToComplete + 12, 0x00, transferBufferLength - 12);
+
+
 	// TODO_rc1: Feed in a payload from kAFL
 	// The payload will be fed in via IOCTL at some earlier point
 	// In a queue of sorts, the data will be popped off (or rather pointer moved) for each byte that is consumed by a command
 	// We can use up to 2mb of data by default -- otherwise kAFL will have to be modified
+	WDFREQUEST triggerRequest = pBackChannelContext->payloadRequest;
 
+	if (triggerRequest != NULL) {
+		// Check if there is enough payload to complete this request
+		if (pBackChannelContext->payloadOffset + transferBufferLength - 12 < AFL_PAYLOAD_SIZE) {
+			// Copy the fuzzy payload (but keep the hostcmd information)
+			memcpy(transferBufferToComplete + 12, pBackChannelContext->aflPayload + pBackChannelContext->payloadOffset, transferBufferLength - 12);
+			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - using payload\n");
+			pBackChannelContext->payloadOffset += transferBufferLength - 12;
+			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - Payload remaining: %d\n", AFL_PAYLOAD_SIZE - pBackChannelContext->payloadOffset);
+		}
+		else {
+			// We're out of payload to use -- the last URB was the final urb
+			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - end of payload\n");
+			WdfRequestComplete(triggerRequest, STATUS_SUCCESS);
+			pBackChannelContext->payloadRequest = NULL;
+		}
+	}
+	else {
 
-	// Check if there is an available payload
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - end of payload, using random data\n");
+
+		// TODO: No more URB's should go through
+		// For now, use random data
+		LARGE_INTEGER p = KeQueryPerformanceCounter(NULL);
+		ULONG seed = p.LowPart ^ (ULONG)p.HighPart;
+
+		for (ULONG i = 12; i < transferBufferLength; i++) {
+			transferBufferToComplete[i] = (UCHAR)RtlRandom(&seed);
+		}
+	}
 	
+	/*
 	void* payload = GetPayload(transferBufferToComplete[4]);
 
 	if (payload == NULL) {

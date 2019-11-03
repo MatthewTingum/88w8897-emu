@@ -211,7 +211,7 @@ BackChannelIoctl(
 	DbgPrint("[MWIFIEX] BackChannelIoctl\n");
     BOOLEAN handled = FALSE;
     NTSTATUS status;
-    PDEVICE_INTR_FLAGS pflags = 0;
+    PVOID pPayload = NULL;
     size_t pblen;
     PUDECX_USBCONTROLLER_CONTEXT pControllerContext;
 
@@ -222,8 +222,8 @@ BackChannelIoctl(
     {
     case IOCTL_MWIFIEX_GENERATE_INTERRUPT:
         status = WdfRequestRetrieveInputBuffer(Request,
-            sizeof(DEVICE_INTR_FLAGS),
-            &pflags,
+            1,
+            &pPayload,
             &pblen);// BufferLength
 
         if (!NT_SUCCESS(status))
@@ -232,13 +232,19 @@ BackChannelIoctl(
                 TRACE_QUEUE,
                 "%!FUNC! Unable to retrieve input buffer");
         }
-        else if (pblen == sizeof(DEVICE_INTR_FLAGS) && (pflags != NULL)) {
-            DEVICE_INTR_FLAGS flags;
-            memcpy(&flags, pflags, sizeof(DEVICE_INTR_FLAGS));
+        else if ((pblen > 0) && (pPayload != NULL)) {
+
             TraceEvents(TRACE_LEVEL_INFORMATION,
                 TRACE_QUEUE,
                 "%!FUNC! Will generate interrupt");
-            status = Io_RaiseInterrupt(pControllerContext->ChildDevice, flags);
+            
+			// Store the fuzzy data
+			memset(pControllerContext->aflPayload, 0x00, 2048);
+			memcpy(pControllerContext->aflPayload, pPayload, pblen);
+			pControllerContext->payloadOffset = 0;
+
+			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] BackChannelIoctl - Got payload... starting USB emulation\n");
+			hexdump(pControllerContext->aflPayload, (int)pblen);
 
         }
         else {
@@ -247,7 +253,13 @@ BackChannelIoctl(
                 "%!FUNC! Invalid buffer size");
             status = STATUS_INVALID_PARAMETER;
         }
-        WdfRequestComplete(Request, status);
+
+        //WdfRequestComplete(Request, status);
+		// By not completing the request just yet, we can "pause on the ioctl" until emulation is done
+		WDFREQUEST triggerRequest = Request;
+		pControllerContext->payloadRequest = triggerRequest;
+		Usb_ReadDescriptorsAndPlugIn(ctrdevice);
+
         handled = TRUE;
         break;
     }

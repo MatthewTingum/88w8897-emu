@@ -21,6 +21,10 @@ Abstract:
 #include "trace.h"
 #include "Public.h"
 
+void hexdump(void* ptr, int buflen);
+
+#define AFL_PAYLOAD_SIZE 400
+
 // in case it becomes a queue one day, an arbitrary limit
 #define INTR_STATE_MAX_CACHED_UPDATES 100
 

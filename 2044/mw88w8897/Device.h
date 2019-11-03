@@ -46,6 +46,10 @@ typedef struct _UDECX_USBCONTROLLER_CONTEXT {
     WRITE_BUFFER_TO_READ_REQUEST_QUEUE missionCompletion;
 	WDFREQUEST	   pendedRequest;
 
+	char aflPayload[2048];
+	WDFREQUEST payloadRequest;
+	int payloadOffset;
+
     PUDECXUSBDEVICE_INIT  ChildDeviceInit;
     UDECXUSBDEVICE        ChildDevice;
 } UDECX_USBCONTROLLER_CONTEXT, *PUDECX_USBCONTROLLER_CONTEXT;

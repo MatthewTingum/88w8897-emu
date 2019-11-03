@@ -430,12 +430,16 @@ ControllerWdfEvtDeviceD0Entry(
 		NT_ASSERT(!pControllerContext->AllowOnlyResetInterrupts);
 		pControllerContext->AllowOnlyResetInterrupts = TRUE;
 
+		/* Moved to be IOCTL controlled
 		status = Usb_ReadDescriptorsAndPlugIn(WdfDevice);
 
 		if (!NT_SUCCESS(status)) {
 
 			goto exit;
 		}
+		*/
+
+		goto exit;
 	}
 
 exit:
