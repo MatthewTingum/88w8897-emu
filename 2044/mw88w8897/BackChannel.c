@@ -57,6 +57,8 @@ BackChannelInit(
         goto exit;
     }
 
+	pControllerContext->baseDevice = ctrdevice;
+
 exit:
     return status;
 }

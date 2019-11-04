@@ -460,6 +460,9 @@ IoEvtBulkOutUrb1(
 			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "[MWIFIEX] IoEvtBulkOutUrb1 - end of payload\n");
 			WdfRequestComplete(triggerRequest, STATUS_SUCCESS);
 			pBackChannelContext->payloadRequest = NULL;
+
+			// Yikes
+			Usb_Disconnect(pBackChannelContext->baseDevice);
 		}
 	}
 	else {
