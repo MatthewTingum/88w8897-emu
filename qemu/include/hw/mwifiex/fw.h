@@ -949,7 +949,8 @@ struct mwifiex_ie_type_key_param_set {
 	__le16 key_type_id;
 	__le16 key_info;
 	__le16 key_len;
-	u8 key[50];
+	//u8 key[50];
+	u8 key[64];
 } __attribute__((packed));
 
 #define IGTK_PN_LEN		8

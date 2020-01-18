@@ -45,7 +45,9 @@
  * Skip PID 1 (FW Update - 0x2043) for now
  */
 #define USB_VENDOR_NUM        0x1286  /* MARVELL SEMICONDUCTOR, INC. */
-#define USB_PRODUCT_NUM       0x2044  /* USB8797_PID_2 */
+// this is set to 0x2043 on FW Download and 0x2044 for Active
+//#define USB_PRODUCT_NUM       0x2044  /* USB8797_PID_2 */
+#define USB_PRODUCT_NUM       0x204E  /* USB8997_PID_2 */
 
 enum usbstring_idx {
     STRING_MANUFACTURER		= 1,
@@ -91,7 +93,7 @@ static const USBDescStrings usb_net_stringtable = {
     [STRING_MANUFACTURER]           = "Marvell",
     [STRING_PRODUCT]                = "Bluetooth and Wireless LAN Composite Device",
     [STRING_SERIALNUMBER]           = "6045BDDB2C7C",
-    [STRING_UNUSED]                 = "",
+    [STRING_UNUSED]                 = "Unused",
     [STRING_WIRELESS_LAN_INTERFACE] = "Wireless LAN Interface",
 };
 
@@ -115,7 +117,7 @@ static const USBDescIface desc_iface_rndis[] = {
                 .bInterval             = 0x01,
             },
             {
-                .bEndpointAddress      = USB_DIR_IN | 0x04,
+                .bEndpointAddress      = USB_DIR_OUT | 0x04,
                 .bmAttributes          = USB_ENDPOINT_XFER_BULK,
                 .wMaxPacketSize        = 0x0200,
                 .bInterval             = 0x00,
@@ -260,7 +262,7 @@ static const USBDescIface desc_iface_rndis[] = {
             }
         }
     },{
-        /* RNDIS Data Interface */
+        /* CAREFUL -- THE LAST ENDPOINT WAS CHANGED */
         .bInterfaceNumber              = 2,
         .bAlternateSetting             = 0,
         .bNumEndpoints                 = 5,
@@ -290,7 +292,7 @@ static const USBDescIface desc_iface_rndis[] = {
                 .wMaxPacketSize        = 0x0200,
                 .bInterval             = 0x00,
             },{
-                .bEndpointAddress      = USB_DIR_OUT | 0x06,
+                .bEndpointAddress      = USB_DIR_OUT | 0x03,
                 .bmAttributes          = USB_ENDPOINT_XFER_BULK,
                 .wMaxPacketSize        = 0x0200,
                 .bInterval             = 0x00,
@@ -299,9 +301,24 @@ static const USBDescIface desc_iface_rndis[] = {
     }
 };
 
+static const USBDescIfaceAssoc desc_iface_assoc_rndis[] = {
+    {
+        .bFirstInterface        = 0x00,
+        .bInterfaceCount        = 0x02,
+        .bFunctionClass         = 0xE0,
+        .bFunctionSubClass      = 0x01,
+        .bFunctionProtocol      = 0x01,
+        .iFunction              = 0x00,
+        .nif                    = ARRAY_SIZE(desc_iface_rndis),
+        .ifs                    = desc_iface_rndis,
+    }
+};
+
 static const USBDescDevice desc_device_net = {
     .bcdUSB                        = 0x0200,
     .bDeviceClass                  = 0xEF,  // USB_CLASS_MI
+    .bDeviceSubClass               = 0x02,
+    .bDeviceProtocol               = 0x01,
     .bMaxPacketSize0               = 0x40,
     .bNumConfigurations            = 1,
     .confs = (USBDescConfig[]) {
@@ -311,8 +328,10 @@ static const USBDescDevice desc_device_net = {
             .iConfiguration        = 0,
             .bmAttributes          = USB_CFG_ATT_ONE | USB_CFG_ATT_SELFPOWER | USB_CFG_ATT_WAKEUP,
             .bMaxPower             = 0xFA,
-            .nif = ARRAY_SIZE(desc_iface_rndis),
-            .ifs = desc_iface_rndis,
+            .nif_groups = ARRAY_SIZE(desc_iface_assoc_rndis),
+            .if_groups = desc_iface_assoc_rndis,
+            //.nif = ARRAY_SIZE(desc_iface_rndis),
+            //.ifs = desc_iface_rndis,
         }
     },
 };
@@ -670,10 +689,10 @@ typedef struct USBNetState {
     uint32_t vendorid;
 
     unsigned int out_ptr;
-    uint8_t out_buf[2048];
+    uint8_t out_buf[0x4000];
 
     unsigned int in_ptr, in_len;
-    uint8_t in_buf[2048];
+    uint8_t in_buf[0x4000];
 
     USBEndpoint *intr;
 
@@ -683,8 +702,27 @@ typedef struct USBNetState {
     QTAILQ_HEAD(, rndis_response) rndis_resp;
 
     USBPacket *pending_packet;
-    uint8_t resp_buf[2048]; // probably could be using in/out_buf
+    uint8_t resp_buf[0x4000]; // probably could be using in/out_buf
     uint32_t resp_len;
+
+#define CFIFO_LEN_MASK	255
+#define DFIFO_LEN_MASK	4095
+    struct usb_hci_in_fifo_s {
+        uint8_t data[(DFIFO_LEN_MASK + 1) * 2];
+        struct {
+            uint8_t *data;
+            int len;
+        } fifo[CFIFO_LEN_MASK + 1];
+        int dstart, dlen, dsize, start, len;
+    } evt, acl, sco;
+
+    struct usb_hci_out_fifo_s {
+        uint8_t data[4096];
+	int len;
+    } outcmd, outacl, outsco;
+
+    USBPacket *packet;
+
 } USBNetState;
 
 #define TYPE_USB_NET "usb-net-marvell"
@@ -1095,16 +1133,80 @@ static int rndis_parse(USBNetState *s, uint8_t *data, int length)
 
 static void usb_net_handle_reset(USBDevice *dev)
 {
+    fprintf(stderr, "usb_net_handle_reset\n");
+}
+
+static void dump_hex(const void* data, size_t size) {
+	char ascii[17];
+	size_t i, j;
+	ascii[16] = '\0';
+	for (i = 0; i < size; ++i) {
+		fprintf(stderr, "%02X ", ((unsigned char*)data)[i]);
+		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
+			ascii[i % 16] = ((unsigned char*)data)[i];
+		} else {
+			ascii[i % 16] = '.';
+		}
+		if ((i+1) % 8 == 0 || i+1 == size) {
+			fprintf(stderr, " ");
+			if ((i+1) % 16 == 0) {
+				fprintf(stderr, "|  %s \n", ascii);
+			} else if (i+1 == size) {
+				ascii[(i+1) % 16] = '\0';
+				if ((i+1) % 16 <= 8) {
+					fprintf(stderr, " ");
+				}
+				for (j = (i+1) % 16; j < 16; ++j) {
+					fprintf(stderr, "   ");
+				}
+				fprintf(stderr, "|  %s \n", ascii);
+			}
+		}
+	}
 }
 
 static void usb_net_handle_control(USBDevice *dev, USBPacket *p,
                int request, int value, int index, int length, uint8_t *data)
 {
+    // This is broken, take not of how the serial number is wrong and an ocassional 'control not handled'
+    fprintf(stderr, "usb_net_handle_control\n");
+    fprintf(stderr, "usbnet: control transaction: "
+                        "request 0x%x value 0x%x index 0x%x length 0x%x\n",
+                        request, value, index, length);
+    dump_hex(data, length);
+
     USBNetState *s = (USBNetState *) dev;
     int ret;
 
     ret = usb_desc_handle_control(dev, p, request, value, index, length, data);
     if (ret >= 0) {
+        return;
+    } else {
+        /* Check if we can respond to this with a data out
+        fprintf(stderr, "Responding to host control\n");
+        s->resp_buf[5] = s->resp_buf[5] | 0x80;
+        usb_packet_copy(p, s->resp_buf, s->resp_len);
+        s->resp_len = 0;
+        return;
+        */
+        //dump_hex(data, length);
+        //memcpy(s->resp_buf, data, length);
+        //s->resp_len = length;
+        // see the fail condition -- we might be getting HCI commands
+        fprintf(stderr, "control not handled: %d\n", ret);
+        if ((data[0] == 0x03) && (data[1] == 0x0c) & (data[2] == 0x00)){
+            data[0] = 0x0e;
+            data[1] = 0x04;
+            data[2] = 0x01;
+            data[3] = 0x03;
+            data[4] = 0x0c;
+            data[5] = 0x00;
+            p->actual_length = 6;
+            ret = 0;
+            return;
+        } else {
+            p->status = USB_RET_STALL;
+        }
         return;
     }
 
@@ -1156,48 +1258,24 @@ static void usb_net_handle_control(USBDevice *dev, USBPacket *p,
 
     default:
     fail:
+        // request 0x2000 buffer "03 0c 00" - might be HCI Reset Command
+        // https://bluekitchen-gmbh.com/usb-protocol-analyzer-for-bluetooth-communication-logging/
         fprintf(stderr, "usbnet: failed control transaction: "
                         "request 0x%x value 0x%x index 0x%x length 0x%x\n",
                         request, value, index, length);
         p->status = USB_RET_STALL;
         break;
     }
+
 }
 
-/*
-static void dump_hex(const void* data, size_t size) {
-	char ascii[17];
-	size_t i, j;
-	ascii[16] = '\0';
-	for (i = 0; i < size; ++i) {
-		fprintf(stderr, "%02X ", ((unsigned char*)data)[i]);
-		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
-			ascii[i % 16] = ((unsigned char*)data)[i];
-		} else {
-			ascii[i % 16] = '.';
-		}
-		if ((i+1) % 8 == 0 || i+1 == size) {
-			fprintf(stderr, " ");
-			if ((i+1) % 16 == 0) {
-				fprintf(stderr, "|  %s \n", ascii);
-			} else if (i+1 == size) {
-				ascii[(i+1) % 16] = '\0';
-				if ((i+1) % 16 <= 8) {
-					fprintf(stderr, " ");
-				}
-				for (j = (i+1) % 16; j < 16; ++j) {
-					fprintf(stderr, "   ");
-				}
-				fprintf(stderr, "|  %s \n", ascii);
-			}
-		}
-	}
-}
-*/
+
+
+
 static void usb_net_handle_statusin(USBNetState *s, USBPacket *p)
 {
     //dump_hex(s->in_buf, 128);
-    //fprintf(stderr, "DEBUG: statusin - resp_len: %d\n", s->resp_len);
+    fprintf(stderr, "DEBUG: statusin - resp_len: %d\n", s->resp_len);
 
     if (s->resp_len > 0){
 
@@ -1216,6 +1294,7 @@ static void usb_net_handle_statusin(USBNetState *s, USBPacket *p)
         struct host_cmd_ds_mac_control *mac_ctrl = (struct host_cmd_ds_mac_control *) &msg->params.mac_ctrl;
         //struct host_cmd_ds_802_11_snmp_mib *smib = (struct host_cmd_ds_802_11_snmp_mib *) &msg->params.smib;
         struct host_cmd_ds_11n_cfg *htcfg = (struct host_cmd_ds_11n_cfg *) &msg->params.htcfg;
+        struct host_cmd_ds_802_11_key_material *key_material = (struct host_cmd_ds_802_11_key_material *) &msg->params.key_material;
 
         switch(msg->command){
         case HostCmd_CMD_FUNC_INIT:
@@ -1250,6 +1329,17 @@ static void usb_net_handle_statusin(USBNetState *s, USBPacket *p)
             hw_spec->dot_11ac_dev_cap = 0x01000000;
             hw_spec->dot_11ac_mcs_support = 0xb079c133;
             //hw_spec->tlvs = 0xfafffaff; // idk dawg
+
+            // What happens if we pull a little sneaky here?
+            /*
+            s->resp_buf[4] = 0x5e;
+            key_material->action = 0x0100;
+            key_material->key_param_set.key_len = 0xffff;
+            memset(hw_spec, 0xff, sizeof(struct host_cmd_ds_802_11_key_material));
+            memset(key_material->key_param_set.key, 0xff, 54);
+            fprintf(stderr, "Clean byte check: %x\n", key_material->key_param_set.key[49]);
+            fprintf(stderr, "Dirty byte check: %x\n", key_material->key_param_set.key[50]);
+            */
             break;
         case HostCmd_CMD_RECONFIGURE_TX_BUFF:
             fprintf(stderr, "HostCmd: HostCmd_CMD_RECONFIGURE_TX_BUFF\n");
@@ -1286,12 +1376,12 @@ static void usb_net_handle_statusin(USBNetState *s, USBPacket *p)
             fprintf(stderr, "HostCmd: HostCmd_CMD_802_11_IBSS_COALESCING_STATUS\n");
             ibss_coalescing->action = 0x0100;
             ibss_coalescing->enable = 0x0100;
-            ibss_coalescing->bssid[0] = 0x00;
-            ibss_coalescing->bssid[1] = 0x00;
-            ibss_coalescing->bssid[2] = 0x00;
-            ibss_coalescing->bssid[3] = 0x00;
-            ibss_coalescing->bssid[4] = 0x00;
-            ibss_coalescing->bssid[5] = 0x00;
+            ibss_coalescing->bssid[0] = 0x12;
+            ibss_coalescing->bssid[1] = 0x34;
+            ibss_coalescing->bssid[2] = 0x56;
+            ibss_coalescing->bssid[3] = 0x78;
+            ibss_coalescing->bssid[4] = 0x9a;
+            ibss_coalescing->bssid[5] = 0xbc;
             ibss_coalescing->beacon_interval = 0x0000;
             ibss_coalescing->atim_window = 0x0000;
             ibss_coalescing->use_g_rate_protect = 0x0000;
@@ -1312,6 +1402,16 @@ static void usb_net_handle_statusin(USBNetState *s, USBPacket *p)
             //smib->oid = 0x0000;
             //smib->buf_size = 0x0000;
             //smib->value[0] = 0x00;
+            
+            s->resp_buf[4] = 0x5e;
+            key_material->action = 0x0100;
+            key_material->key_param_set.key_len = 0x4000;
+            //memset(key_material, 0xff, sizeof(struct host_cmd_ds_802_11_snmp_mib));
+            memset(key_material->key_param_set.key, 0x00, 64);
+            fprintf(stderr, "Clean byte check: %x\n", key_material->key_param_set.key[48]);
+            fprintf(stderr, "Clean byte check: %x\n", key_material->key_param_set.key[49]);
+            fprintf(stderr, "Dirty byte check: %x\n", key_material->key_param_set.key[50]);
+            fprintf(stderr, "Dirty byte check: %x\n", key_material->key_param_set.key[51]);
             break;
         case HostCmd_CMD_11N_CFG:
             fprintf(stderr, "HostCmd: HostCmd_CMD_11N_CFG\n");
@@ -1322,6 +1422,8 @@ static void usb_net_handle_statusin(USBNetState *s, USBPacket *p)
             break;
         default:
             fprintf(stderr, "HostCmd: NOT YET IMPLEMENTED\tTODO!!!\n");
+            fprintf(stderr, "HostCmd: %d\n", msg->command);
+            dump_hex(msg, s->resp_len);
             break;
         }
 
@@ -1331,6 +1433,11 @@ static void usb_net_handle_statusin(USBNetState *s, USBPacket *p)
         s->resp_len = 0;
         //fprintf(stderr, "DEBUG: Set resp_len to 0 - resp_len: %d\n", s->resp_len);
 
+    } else {
+        fprintf(stderr, "statusin stalled\n");
+        p->actual_length = 0;
+        //p->status = USB_RET_STALL;
+        //p->status = USB_RET_ASYNC;
     }
     /*
     le32 buf[2];
@@ -1375,7 +1482,7 @@ static void usb_net_handle_datain(USBNetState *s, USBPacket *p)
     s->in_ptr += len;
     if (s->in_ptr >= s->in_len &&
                     (is_rndis(s) || (s->in_len & (64 - 1)) || !len)) {
-        /* no short packet necessary */
+        // no short packet necessary
         usb_net_reset_in_buf(s);
     }
 
@@ -1384,6 +1491,7 @@ static void usb_net_handle_datain(USBNetState *s, USBPacket *p)
     iov_hexdump(p->iov.iov, p->iov.niov, stderr, "usbnet", len);
 #endif
 }
+
 
 static void usb_net_handle_dataout(USBNetState *s, USBPacket *p)
 {
@@ -1402,6 +1510,7 @@ static void usb_net_handle_dataout(USBNetState *s, USBPacket *p)
     iov_hexdump(p->iov.iov, p->iov.niov, stderr, "usbnet", p->iov.size);
 #endif
 
+    fprintf(stderr, "usbnet: data out len %zu - sz: %d\n", p->iov.size, sz);
     if (sz > p->iov.size) {
         //fprintf(stderr, "DEBUG: Set sz to iov.size - sz: %d - iov: %ld\n", sz, p->iov.size);
         sz = p->iov.size;
@@ -1430,6 +1539,27 @@ static void usb_net_handle_dataout(USBNetState *s, USBPacket *p)
 
     struct host_cmd_ds_command *msg = (struct host_cmd_ds_command *) &s->out_buf[4];
     fprintf(stderr, "Queued HostCMD: command: %x - size: %d - seq_num: %d - result: %d\n", msg->command, msg->size, msg->seq_num, msg->result);
+
+    if (s->packet != NULL){
+        fprintf(stderr, "Debug: Completing packet...\n");
+        USBPacket *dp = s->packet;
+        s->packet = NULL;
+        //dp->actual_length = dp->iov.size;
+
+        // Dirty -- this just verifies that it works
+        char* idk = (char*)calloc(1, 12);
+        idk[0] = 0xce;
+        idk[1] = 0xfa;
+        idk[2] = 0x0d;
+        idk[3] = 0xf0;
+        memcpy(idk + 4, msg, 8);
+        idk[5] = 0x80;  // complete
+
+        usb_packet_copy(dp, idk, 12);
+        dump_hex(idk, 8);
+        dp->status = USB_RET_SUCCESS;
+        usb_packet_complete(&s->dev, dp);
+    }
 
     return;
     /*
@@ -1461,46 +1591,157 @@ static void usb_net_handle_dataout(USBNetState *s, USBPacket *p)
     //memmove(s->out_buf, &s->out_buf[size], s->out_ptr);
 }
 
+static inline int usb_bt_fifo_dequeue(struct usb_hci_in_fifo_s *fifo,
+                USBPacket *p)
+{
+    fprintf(stderr, "usb_bt_fifo_dequeue\n");
+
+    int len;
+
+    if (likely(!fifo->len))
+        return USB_RET_STALL;
+
+    len = MIN(p->iov.size, fifo->fifo[fifo->start].len);
+    usb_packet_copy(p, fifo->fifo[fifo->start].data, len);
+    if (len == p->iov.size) {
+        fifo->fifo[fifo->start].len -= len;
+        fifo->fifo[fifo->start].data += len;
+    } else {
+        fifo->start ++;
+        fifo->start &= CFIFO_LEN_MASK;
+        fifo->len --;
+    }
+
+    fifo->dstart += len;
+    fifo->dlen -= len;
+    if (fifo->dstart >= fifo->dsize) {
+        fifo->dstart = 0;
+        fifo->dsize = DFIFO_LEN_MASK + 1;
+    }
+
+    return len;
+}
+
+static inline void usb_bt_fifo_out_enqueue(struct USBNetState *s,
+                struct usb_hci_out_fifo_s *fifo,
+                USBPacket *p)
+{
+    fprintf(stderr, "usb_bt_fifo_out_enqueue\n");
+
+    usb_packet_copy(p, fifo->data + fifo->len, p->iov.size);
+    fifo->len += p->iov.size;
+
+    /* Do not check this case yet -- at least the first packet must be queued
+    if (complete(fifo->data, fifo->len)) {
+        send(s->hci, fifo->data, fifo->len);
+        fifo->len = 0;
+    }
+    */
+
+    /* TODO: do we need to loop? */
+}
+
+
+
 static void usb_net_handle_data(USBDevice *dev, USBPacket *p)
 {
     USBNetState *s = (USBNetState *) dev;
 
+    //USBPacket *op = s->p;
+    //USBEndpoint *oep = op->ep;
+
+    fprintf(stderr, "usbnet: Transaction: pid 0x%x ep 0x%x len 0x%zx\n", p->pid, p->ep->nr, p->iov.size);
+    //dump_hex(s->resp_buf, p->iov.size);
+
     switch(p->pid) {
+    // 0x69 - TX
     case USB_TOKEN_IN:
         switch (p->ep->nr) {
-        case 1:
-            //fprintf(stderr, "USB BULK IN - EP1\n");
-            usb_net_handle_statusin(s, p);
-            //goto fail;
+        case MWIFIEX_USB_EP_CMD_EVENT:
+            //usb_net_handle_statusin(s, p);
+            //usb_net_handle_datain(s, p);
+            //p->actual_length = 0;
+            if (s->packet == NULL){
+                fprintf(stderr, "DEBUG: Deferring Bulk In packet\n");
+                s->packet = p;
+                p->status = USB_RET_ASYNC;
+            }
+            /*
+            p->state = USB_PACKET_QUEUED;
+            QTAILQ_INSERT_TAIL(&p->ep->queue, p, queue);
+            p->status = USB_RET_ASYNC;
+            */
+            //usb_bt_fifo_dequeue(&s->evt, p);
+            //usb_packet_set_state(p, USB_PACKET_QUEUED);
+            //QTAILQ_INSERT_TAIL(&p->ep->queue, p, queue);
+            //p->status = USB_RET_ASYNC;
             break;
 
-        case 2:
-            //goto fail;
-            //fprintf(stderr, "USB BULK IN - EP2\n");
+        case 234:
+            // stop compiler from complaining
+            usb_net_handle_statusin(s, p);
             usb_net_handle_datain(s, p);
             break;
 
-        default:
-            goto fail;
-        }
-        break;
+        case MWIFIEX_USB_EP_DATA:
+            //goto fail;
+            //fprintf(stderr, "USB BULK IN - EP2\n");
+            //usb_net_handle_datain(s, p);
+            //p->state = USB_PACKET_QUEUED;
+            //QTAILQ_INSERT_TAIL(&p->ep->queue, p, queue);
+            p->status = USB_RET_ASYNC;
 
-    case USB_TOKEN_OUT:
-        switch (p->ep->nr) {
-        case 1:
-            //fprintf(stderr, "USB BULK OUT - EP1\n");
-            usb_net_handle_dataout(s, p);
+            //usb_net_handle_statusin(s, p);
+            fprintf(stderr, "Unhandled MWIFIEX_USB_EP_DATA\n");
             break;
 
         default:
-            goto fail;
+            p->status = USB_RET_ASYNC;
+            //if (s->resp_len > 0){
+            //    usb_net_handle_statusin(s, p);
+            //} else {
+            //usb_net_handle_datain(s, p);
+            //}
+            //goto fail;
         }
         break;
 
+    // 0xe1 - RX
+    case USB_TOKEN_OUT:
+        switch (p->ep->nr) {
+        case MWIFIEX_USB_EP_CMD_EVENT:
+            usb_net_handle_dataout(s, p);
+            //usb_bt_fifo_out_enqueue(s, &s->outacl, p);
+            //usb_packet_complete_one(oep->dev, op);
+            break;
+        case MWIFIEX_USB_EP_DATA:
+            //fprintf(stderr, "USB BULK OUT - EP2\n");
+            // Adding this line seems to have broken this -- although it might just be hit or miss
+            //usb_net_handle_dataout(s, p);
+            //p->state = USB_PACKET_QUEUED;
+            //QTAILQ_INSERT_TAIL(&p->ep->queue, p, queue);
+            p->status = USB_RET_ASYNC;
+            break;
+        case MWIFIEX_USB_EP_DATA_CH2:
+            //fprintf(stderr, "Unhandled MWIFIEX_USB_EP_DATA_CH2\n");
+            //usb_net_handle_dataout(s, p);
+            //p->state = USB_PACKET_QUEUED;
+            //QTAILQ_INSERT_TAIL(&p->ep->queue, p, queue);
+            p->status = USB_RET_ASYNC;
+            break;
+        default:
+            p->status = USB_RET_ASYNC;
+            //p->status = USB_RET_STALL;
+            //goto fail;
+        }
+        break;
+
+/* I don't know the word
     default:
     fail:
         p->status = USB_RET_STALL;
         break;
+*/
     }
 
     if (p->status == USB_RET_STALL) {
