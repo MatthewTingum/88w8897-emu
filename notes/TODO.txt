@@ -1,3 +1,0 @@
-Stop ignoring the bulk ins
-	-- a bulk in is meant to retrieve data. IDK why 84 is talking... but 81 could be pended until the 01 bulk out
-	If this is not the case, it demands some kind of real response
